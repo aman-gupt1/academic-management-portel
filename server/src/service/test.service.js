@@ -57,20 +57,92 @@ class TestService {
 
 
   // ================= GET ALL TESTS =================
-  async getAllTests() {
+  async getAllTests(queryParams) {
+      const filter = {};
 
-    const tests = await this.Test.find()
-      .populate("classId")
-      .populate({
-        path: "teacherId",
-        populate: {
-          path: "userId",
-          select: "name email profileImg",
+
+      // Search
+  if (queryParams.search) {
+    filter.$or = [
+      {
+        title: {
+          $regex: queryParams.search,
+          $options: "i",
         },
-      })
-      .sort({ testDate: -1 });
+      },
+      {
+        subject: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+    ];
+  }
 
-    return tests;
+
+    // Filters
+  if (queryParams.classId) {
+    filter.classId = queryParams.classId;
+  }
+
+  if (queryParams.teacherId) {
+    filter.teacherId = queryParams.teacherId;
+  }
+
+  if (queryParams.subject) {
+    filter.subject = queryParams.subject;
+  }
+
+  let query = this.Test.find(filter)
+    .populate("classId")
+    .populate({
+      path: "teacherId",
+      populate: {
+        path: "userId",
+        select: "name email profileImg",
+      },
+    });
+
+     // Pagination
+  let page = 1;
+  let limit = 10;
+
+  if (queryParams.all !== "true") {
+    page = Number(queryParams.page) || 1;
+    limit = Number(queryParams.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+  }
+
+  // Sorting
+  if (queryParams.sort) {
+    query = query.sort(queryParams.sort);
+  } else {
+    query = query.sort("-testDate");
+  }
+
+  const tests = await query;
+
+  const total = await this.Test.countDocuments(filter);
+
+return {
+    tests,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+    
   }
 
 

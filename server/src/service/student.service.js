@@ -63,14 +63,81 @@ class StudentService {
 
 
   // ================= GET ALL STUDENTS =================
-  async getAllStudents() {
+  async getAllStudents(queryParams) {
 
-    const students = await this.Student.find()
-      .populate("userId", "name email role")
-      .populate("classId");
+  // const page = Number(queryParams.page) || 1;
+  // const limit = Number(queryParams.limit) || 10;
+  // const skip = (page - 1) * limit;
+  const filter = {};
+
+  // Search
+  if (queryParams.search) {
+    filter.$or = [
+      {
+        admissionNumber: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      {
+        rollNumber: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  // Class Filter
+  if (queryParams.classId) {
+    filter.classId = queryParams.classId;
+  }
+
+  let query = this.Student.find(filter)
+    .populate("userId", "name email role")
+    .populate("classId")
 
 
-    return students;
+let page = 1;
+let limit = 10;
+
+if (queryParams.all !== "true") {
+  page = Number(queryParams.page) || 1;
+  limit = Number(queryParams.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  query = query.skip(skip).limit(limit);
+}
+
+    // Sorting
+  if (queryParams.sort) {
+    query = query.sort(queryParams.sort);
+  } else {
+    query = query.sort("-createdAt");
+  }
+
+  const students = await query;
+
+
+    // const students = await this.Student.find()
+    //   .populate("userId", "name email role")
+    //   .populate("classId");
+
+const total = await this.Student.countDocuments(filter);
+
+
+    return {
+      students,
+      
+       pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+
+    };
   }
 
 

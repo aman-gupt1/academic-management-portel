@@ -81,9 +81,30 @@ class ResultService {
 
 
   // ================= GET ALL RESULTS =================
-  async getAllResults() {
+  async getAllResults(queryParams) {
 
-    const results = await this.Result.find()
+    const filter = {};
+
+    if (queryParams.studentId) {
+  filter.studentId = queryParams.studentId;
+    }
+
+    if (queryParams.testId) {
+      filter.testId = queryParams.testId;
+    }
+
+    if (queryParams.grade) {
+      filter.grade = queryParams.grade;
+    }
+
+    if (queryParams.search) {
+      filter.remarks = {
+        $regex: queryParams.search,
+        $options: "i",
+      };
+    }
+
+    let query = this.Result.find(filter)
       .populate({
         path: "testId",
         populate: {
@@ -97,10 +118,41 @@ class ResultService {
           select: "name email profileImg",
         },
       })
-      .sort({ createdAt: -1 });
 
 
-    return results;
+
+let page = 1;
+let limit = 10;
+
+if (queryParams.all !== "true") {
+  page = Number(queryParams.page) || 1;
+  limit = Number(queryParams.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  query = query.skip(skip).limit(limit);
+}
+
+if (queryParams.sort) {
+  query = query.sort(queryParams.sort);
+} else {
+  query = query.sort("-createdAt");
+}
+
+const results = await query;
+
+const total = await this.Result.countDocuments(filter);
+
+return {
+  results,
+  pagination: {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  },
+};
+
   }
 
 

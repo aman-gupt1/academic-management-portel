@@ -44,19 +44,88 @@ class ActivityService {
 
 
   // ================= GET ALL ACTIVITIES =================
-  async getAllActivities() {
+  async getAllActivities(queryParams) {
+      const filter = {};
 
-    const activities = await this.Activity.find()
-      .populate({
-        path: "studentId",
-        populate: {
-          path: "userId",
-          select: "name email profileImg",
+      // Search
+  if (queryParams.search) {
+    filter.$or = [
+      {
+        title: {
+          $regex: queryParams.search,
+          $options: "i",
         },
-      })
-      .sort({ date: -1 });
+      },
+      {
+        achievement: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      {
+        certification: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+    ];
+  }
 
-    return activities;
+  // Category Filter
+  if (queryParams.category) {
+    filter.category = queryParams.category;
+  }
+
+  // Student Filter
+  if (queryParams.studentId) {
+    filter.studentId = queryParams.studentId;
+  }
+
+  let query = this.Activity.find(filter)
+    .populate({
+      path: "studentId",
+      populate: {
+        path: "userId",
+        select: "name email",
+      },
+    });
+
+    // Pagination
+  let page = 1;
+  let limit = 10;
+
+
+    if (queryParams.all !== "true") {
+    page = Number(queryParams.page) || 1;
+    limit = Number(queryParams.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+  }
+
+  // Sorting
+  if (queryParams.sort) {
+    query = query.sort(queryParams.sort);
+  } else {
+    query = query.sort("-date");
+  }
+
+  const activities = await query;
+
+  const total = await this.Activity.countDocuments(filter);
+
+
+    return {
+    activities,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+
   }
 
 

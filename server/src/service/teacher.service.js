@@ -56,15 +56,76 @@ class TeacherService {
 
 
   // ================= GET ALL TEACHERS =================
-  async getAllTeachers() {
+  async getAllTeachers(queryParams) {
 
-    const teachers = await this.Teacher.find()
-      .populate(
-        "userId",
-        "name email role profileImg"
-      );
+    const filter={};
+  
+    // search
+    if(queryParams.search){
+      filter.$or=[
+        {
+        qualification: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      {
+        subjects: {
+          $regex: queryParams.search,
+          $options: "i",
+        },
+      },
+      ]
+    }
 
-    return teachers;
+
+    // Qualification Filter
+  if (queryParams.qualification) {
+    filter.qualification = queryParams.qualification;
+  }
+
+  // Subject Filter
+  if (queryParams.subject) {
+    filter.subjects = queryParams.subject;
+  }
+
+   let query = this.Teacher.find(filter)
+    .populate(
+      "userId",
+      "name email role profileImg"
+    );
+
+  // Pagination
+  let page = 1;
+  let limit = 10;
+   if (queryParams.all !== "true") {
+    page = Number(queryParams.page) || 1;
+    limit = Number(queryParams.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+  }
+
+  // Sorting
+  if (queryParams.sort) {
+    query = query.sort(queryParams.sort);
+  } else {
+    query = query.sort("-createdAt");
+  }
+
+  const teachers = await query;
+  const total = await this.Teacher.countDocuments(filter);
+    
+   return {
+    teachers,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
   }
 
 

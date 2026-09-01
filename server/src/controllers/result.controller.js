@@ -28,12 +28,12 @@ export const createResult = async (req, res, next) => {
 export const getAllResults = async (req, res, next) => {
   try {
 
-    const results = await resultService.getAllResults();
+    const result = await resultService.getAllResults(req.query);
 
     return res.status(200).json({
       success: true,
-      count: results.length,
-      data: results,
+      data: result.results,
+      pagination: result.pagination,
     });
 
   } catch (error) {

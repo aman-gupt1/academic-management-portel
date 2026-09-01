@@ -26,14 +26,13 @@ export const createAttendance = async (req, res, next) => {
 // Get All Attendance
 export const getAllAttendance = async (req, res, next) => {
   try {
-    const attendance =await attendanceService.getAllAttendance();
-     
+    const result = await attendanceService.getAllAttendance(req.query);
 
-    return res.status(200).json({
-      success: true,
-      count: attendance.length,
-      data: attendance,
-    });
+return res.status(200).json({
+  success: true,
+  data: result.attendance,
+  pagination: result.pagination,
+});
   } catch (error) {
     next(error)
   }

@@ -73,9 +73,30 @@ constructor(attendanceModel, studentModel,classModel, teacherModel){
 
 
   // ================= GET ALL ATTENDANCE =================
-  async getAllAttendance() {
+  async getAllAttendance(queryParams) {
+    const filter = {};
 
-    const attendance = await this.Attendance.find()
+  if (queryParams.studentId) {
+  filter.studentId = queryParams.studentId;
+  }
+
+  if (queryParams.classId) {
+  filter.classId = queryParams.classId;
+  }
+
+  if (queryParams.status) {
+  filter.status = queryParams.status;
+  }
+
+  if (queryParams.markedBy) {
+  filter.markedBy = queryParams.markedBy;
+  }
+
+  if (queryParams.date) {
+  filter.date = queryParams.date;
+  }
+
+   let query = this.Attendance.find(filter)
       .populate({
         path: "studentId",
         populate: {
@@ -91,9 +112,40 @@ constructor(attendanceModel, studentModel,classModel, teacherModel){
           select: "name email profileImg",
         },
       })
-      .sort({ date: -1 });
+      if (queryParams.sort) {
+  query = query.sort(queryParams.sort);
+  } else {
+    query = query.sort("-date");
+  }
 
-    return attendance;
+
+  let page = 1;
+  let limit = 10;
+
+  if (queryParams.all !== "true") {
+    page = Number(queryParams.page) || 1;
+    limit = Number(queryParams.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+  }
+
+  
+const attendance = await query;
+
+const total = await this.Attendance.countDocuments(filter);
+
+  return {
+  attendance,
+  pagination: {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  },
+};
+
   }
 
 

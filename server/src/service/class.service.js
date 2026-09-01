@@ -54,9 +54,46 @@ class ClassService {
 
 
   // ================= GET ALL CLASSES =================
-  async getAllClasses() {
+  async getAllClasses(queryParams) {
+    const filter = {};
 
-    const classes = await this.Class.find()
+    if (queryParams.search) {
+  filter.$or = [
+    {
+      name: {
+        $regex: queryParams.search,
+        $options: "i",
+      },
+    },
+    {
+      section: {
+        $regex: queryParams.search,
+        $options: "i",
+      },
+    },
+    {
+      academicYear: {
+        $regex: queryParams.search,
+        $options: "i",
+      },
+    },
+  ];
+}
+
+if (queryParams.section) {
+  filter.section = queryParams.section.toUpperCase();
+}
+
+if (queryParams.academicYear) {
+  filter.academicYear = queryParams.academicYear;
+}
+
+if (queryParams.classTeacherId) {
+  filter.classTeacherId = queryParams.classTeacherId;
+}
+
+
+    let query = this.Class.find(filter)
       .populate({
         path: "classTeacherId",
         populate: {
@@ -65,7 +102,37 @@ class ClassService {
         },
       });
 
-    return classes;
+let page = 1;
+let limit = 10;
+
+if (queryParams.all !== "true") {
+  page = Number(queryParams.page) || 1;
+  limit = Number(queryParams.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  query = query.skip(skip).limit(limit);
+}
+// sorting
+if (queryParams.sort) {
+  query = query.sort(queryParams.sort);
+} else {
+  query = query.sort("-createdAt");
+}
+
+   const classes = await query;
+   const total = await this.Class.countDocuments(filter);
+
+return {
+  classes,
+  pagination: {
+    page,
+    limit,
+    total,
+    totalPages: Math.ceil(total / limit),
+  },
+};
+
   }
 
 

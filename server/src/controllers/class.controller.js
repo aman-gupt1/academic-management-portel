@@ -29,15 +29,12 @@ export const createClass = async (req, res, next) => {
 export const getAllClasses = async (req, res, next) => {
   try {
 
-    const classes =
-      await classService.getAllClasses();
-
-    return res.status(200).json({
-      success: true,
-      count: classes.length,
-      data: classes,
-    });
-
+const result = await classService.getAllClasses(req.query);
+return res.status(200).json({
+  success: true,
+  data: result.classes,
+  pagination: result.pagination,
+});
   } catch (error) {
 
     next(error)

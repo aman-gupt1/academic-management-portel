@@ -29,13 +29,12 @@ export const createStudent = async (req, res, next) => {
 export const getAllStudents = async (req, res, next) => {
   try {
 
-    const students =
-      await studentService.getAllStudents();
+    const result= await studentService.getAllStudents(req.query);
 
     return res.status(200).json({
       success: true,
-      count: students.length,
-      data: students,
+      data: result.students,
+      pagination: result.pagination,
     });
 
   } catch (error) {

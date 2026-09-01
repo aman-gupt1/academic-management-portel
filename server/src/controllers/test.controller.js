@@ -26,12 +26,12 @@ export const createTest = async (req, res, next) => {
 // Get All Tests
 export const getAllTests = async (req, res, next) => {
   try {
-     const tests = await testService.getAllTests();
+     const result = await testService.getAllTests(req.query);
 
     return res.status(200).json({
       success: true,
-      count: tests.length,
-      data: tests,
+      data: result.tests,
+      pagination: result.pagination,
     });
   } catch (error) {
     next(error)

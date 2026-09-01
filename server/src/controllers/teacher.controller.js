@@ -30,15 +30,15 @@ export const createTeacher = async (req, res, next) => {
 export const getAllTeachers = async (req, res, next) => {
   try {
 
-    const teachers =
-      await teacherService.getAllTeachers();
+  const result = await teacherService.getAllTeachers(req.query);
 
     return res.status(200).json({
       success: true,
-      count: teachers.length,
-      data: teachers,
+      data: result.teachers,
+      pagination: result.pagination,
     });
 
+    
   } catch (error) {
 
     next(error)
