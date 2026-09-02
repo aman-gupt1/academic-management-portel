@@ -24,7 +24,7 @@ export const createActivity = async (req, res, next) => {
 // Get All Activities
 export const getAllActivities = async (req, res, next) => {
   try {
-    const activities =await activityService.getAllActivities(req.query);
+    const result =await activityService.getAllActivities(req.query);
 
     return res.status(200).json({
       success: true,
