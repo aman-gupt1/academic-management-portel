@@ -65,9 +65,6 @@ class StudentService {
   // ================= GET ALL STUDENTS =================
   async getAllStudents(queryParams) {
 
-  // const page = Number(queryParams.page) || 1;
-  // const limit = Number(queryParams.limit) || 10;
-  // const skip = (page - 1) * limit;
   const filter = {};
 
   // Search
@@ -94,7 +91,7 @@ class StudentService {
   }
 
   let query = this.Student.find(filter)
-    .populate("userId", "name email role")
+    .populate("userId", "name email phone role isActive")
     .populate("classId")
 
 
@@ -118,11 +115,6 @@ if (queryParams.all !== "true") {
   }
 
   const students = await query;
-
-
-    // const students = await this.Student.find()
-    //   .populate("userId", "name email role")
-    //   .populate("classId");
 
 const total = await this.Student.countDocuments(filter);
 
@@ -232,6 +224,36 @@ const total = await this.Student.countDocuments(filter);
 
 
     return student;
+  }
+
+  // ============== GET STUDENT STATS ===========
+  async getStudentStats(){
+
+    const totalStudents = await this.Student.countDocuments();
+
+    const activeStudents = await this.Student.countDocuments({
+      isActive: true,
+    });
+
+    const currentYear = new Date().getFullYear();
+
+    const newAdmissions = await this.Student.countDocuments({
+      createdAt: {
+        $gte: new Date(`${currentYear}-01-01`),
+      },
+    });
+
+    const graduatedStudents = await this.Student.countDocuments({
+      status: "Graduated",
+    });
+
+    return {
+      totalStudents,
+      activeStudents,
+      newAdmissions,
+      graduatedStudents
+    }
+
   }
 }
 

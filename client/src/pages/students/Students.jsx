@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
-
+import * as studentApi from '../../api/studentApi.js'
+import StudentDrawer from "../../components/students/StudentDrawer";
 import {
   Plus,
   Search,
@@ -13,48 +15,234 @@ import {
   UserPlus,
   GraduationCap,
 } from "lucide-react";
+import StudentModal from "../../components/students/StudentModel.jsx";
+import CreateStudentModal from "../../components/students/CreateStudentModel.jsx";
+import * as classApi from "../../api/classApi.js";
+import * as userApi from "../../api/userApi.js";
 
 export default function Students() {
   const [search, setSearch] = useState("");
+  const [students, setStudents] = useState([]);
+  const navigate=useNavigate()
 
-  const students = [
-    {
-      id: 1,
-      name: "Aman Gupta",
-      rollNo: "ST101",
-      class: "10-A",
-      email: "aman@gmail.com",
-      phone: "9876543210",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Ravi Kumar",
-      rollNo: "ST102",
-      class: "10-B",
-      email: "ravi@gmail.com",
-      phone: "9876543211",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Neha Sharma",
-      rollNo: "ST103",
-      class: "11-A",
-      email: "neha@gmail.com",
-      phone: "9876543212",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      name: "Aryan Singh",
-      rollNo: "ST104",
-      class: "12-A",
-      email: "aryan@gmail.com",
-      phone: "9876543213",
-      status: "Active",
-    },
-  ];
+  const [users, setUsers] = useState([]);
+
+  const [drawerOpen, setDrawerOpen]=useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [editOpen, setEditOpen]=useState(false);
+
+  const [classes, setClasses] = useState([]);
+  const [formData, setFormData] = useState({
+  name: "",
+  email: "",
+  phone: "",
+  parentName: "",
+  rollNumber: "",
+  classId: "",
+  gender: "",
+  dateOfBirth: "",
+  address: "",
+});
+
+const [createOpen, setCreateOpen] = useState(false);
+
+const [createForm, setCreateForm] = useState({
+  userId: "",
+  admissionNumber: "",
+  rollNumber: "",
+  classId: "",
+  dateOfBirth: "",
+  gender: "Male",
+  parentName: "",
+  address: "",
+});
+
+const [stats, setStats] = useState({
+  totalStudents: 0,
+  activeStudents: 0,
+  newAdmissions: 0,
+  graduatedStudents: 0,
+});
+
+
+
+  // fetch student 
+  const fetchStudents = async () => {
+  try {
+    const { data } = await studentApi.getStudents();
+
+    console.log(data);
+
+    setStudents(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// create student 
+const handleCreateChange = (e) => {
+  setCreateForm({
+    ...createForm,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleCreateStudent = async () => {
+  try {
+    await studentApi.createStudent(createForm);
+
+    setCreateOpen(false);
+
+    fetchStudents();
+
+    setCreateForm({
+      userId: "",
+      admissionNumber: "",
+      rollNumber: "",
+      classId: "",
+      dateOfBirth: "",
+      gender: "",
+      parentName: "",
+      address: "",
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+//========= delete student
+  const handleDeleteStudent = async (id) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this student?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await studentApi.deleteStudent(id);
+
+    alert("Student deleted successfully");
+
+    fetchStudents();
+    setDrawerOpen(false);
+  } catch (error) {
+    console.log(error);
+    alert("Failed to delete student");
+  }
+};
+
+// get student details
+const handleViewStudent = (student) => {
+  setSelectedStudent(student);
+  setDrawerOpen(true);
+};
+
+
+// edit student
+const handleEditStudent = (
+  student
+) => {
+  setFormData({
+    id: student._id,
+
+    name: student.userId?.name || "",
+    email: student.userId?.email || "",
+    phone: student.userId?.phone || "",
+
+    admissionNumber:
+      student.admissionNumber || "",
+
+    rollNumber:
+      student.rollNumber || "",
+
+    classId:
+      student.classId?._id || "",
+
+    gender: student.gender || "",
+
+    dateOfBirth:
+      student.dateOfBirth
+        ?.split("T")[0] || "",
+
+    parentName:
+      student.parentName || "",
+
+    address: student.address || "",
+  });
+
+  setEditOpen(true);
+};
+
+const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]:
+      e.target.value,
+  });
+};
+
+// handle update student
+const handleUpdateStudent = async () => {
+  try {
+    await studentApi.updateStudent(
+      formData.id,
+      formData
+    );
+
+    alert("Student updated successfully");
+
+    setEditOpen(false);
+
+    fetchStudents();
+
+    if (drawerOpen) {
+      setDrawerOpen(false);
+    }
+  } catch (error) {
+    console.log(error);
+    alert("Failed to update student");
+  }
+};
+
+
+// fetch classes
+const fetchClasses = async () => {
+  const { data } =
+    await classApi.getClasses();
+
+  setClasses(data.data);
+};
+
+// fetch users
+const fetchUsers = async () => {
+  try {
+    const { data } = await userApi.getStudentUsers();
+    console.log("Users Response:", data);
+    setUsers(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+// fetch students stats
+const fetchStudentStats = async () => {
+  try {
+    const { data } = await studentApi.getStudentStats();
+
+    setStats(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  fetchStudents();
+  fetchClasses();
+  fetchClasses();
+  fetchUsers();
+  fetchStudentStats();
+}, []);
 
   return (
     <div className="space-y-6">
@@ -63,7 +251,9 @@ export default function Students() {
         title="Students Management"
         subtitle="Manage all student records and academic information."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+          <button 
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
             <Plus size={18} />
             Add Student
           </button>
@@ -74,25 +264,25 @@ export default function Students() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Students"
-          value="1,250"
+          value={stats.totalStudents}
           icon={<Users size={22} />}
         />
 
         <StatCard
           title="Active Students"
-          value="1,180"
+          value={stats.activeStudents}
           icon={<UserCheck size={22} />}
         />
 
         <StatCard
           title="New Admissions"
-          value="45"
+          value={stats.newAdmissions}
           icon={<UserPlus size={22} />}
         />
 
         <StatCard
           title="Graduated"
-          value="25"
+          value={stats.graduatedStudents}
           icon={<GraduationCap size={22} />}
         />
       </div>
@@ -176,65 +366,74 @@ export default function Students() {
               </tr>
             </thead>
 
+
+            {/* student table body */}
+
             <tbody>
               {students.map((student) => (
                 <tr
-                  key={student.id}
+                  key={student._id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-600">
-                        {student.name.charAt(0)}
+                        {student.userId.name.charAt(0)}
                       </div>
 
                       <div>
                         <p className="font-medium text-slate-800">
-                          {student.name}
+                          {student.userId.name}
                         </p>
                       </div>
                     </div>
                   </td>
 
                   <td className="px-6 py-4">
-                    {student.rollNo}
+                    {student.rollNumber}
                   </td>
 
                   <td className="px-6 py-4">
-                    {student.class}
+                    {student.classId.name}-{student.classId.section}
                   </td>
 
                   <td className="px-6 py-4">
-                    {student.email}
+                    {student.userId.email}
                   </td>
 
                   <td className="px-6 py-4">
-                    {student.phone}
+                    {student.userId.phone}
                   </td>
 
                   <td className="px-6 py-4">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        student.status === "Active"
+                        student.userId.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {student.status}
+                      {student.userId.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
 
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
-                        <Eye size={18} />
+                      
+                      <button onClick={() => handleViewStudent(student)}
+                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 cursor-pointer">
+                       <Eye size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
+                      <button 
+                      onClick={()=>handleEditStudent(student)}
+                      className="rounded-lg p-2 text-blue-600 hover:bg-blue-50 cursor-pointer">
                         <Pencil size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                      onClick={() => handleDeleteStudent(student._id)}
+                      className="rounded-lg p-2 text-red-600 hover:bg-red-50 cursor-pointer">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -270,6 +469,32 @@ export default function Students() {
           </div>
         </div>
       </div>
+
+      <StudentDrawer
+      open={drawerOpen}
+      student={selectedStudent}
+      onDelete={handleDeleteStudent}
+      onEdit={handleEditStudent}
+      onClose={()=>setDrawerOpen(false)}/>
+
+      <StudentModal
+      open={editOpen}
+      onClose={() => setEditOpen(false)}
+      formData={formData}
+      handleChange={handleChange}
+      handleSubmit={handleUpdateStudent}
+      classes={classes}
+    />
+
+    <CreateStudentModal
+      open={createOpen}
+      onClose={() => setCreateOpen(false)}
+      formData={createForm}
+      handleChange={handleCreateChange}
+      handleSubmit={handleCreateStudent}
+      classes={classes}
+      users={users}
+    />
     </div>
   );
 }

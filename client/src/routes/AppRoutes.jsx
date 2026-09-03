@@ -12,6 +12,7 @@ import Tests from "../pages/tests/Tests";
 import Results from "../pages/results/Results";
 import Activities from "../pages/activities/Activities";
 
+
 import DashboardLayout from "../components/layout/DashboardLayout";
 
 export default function AppRoutes() {
@@ -23,14 +24,15 @@ export default function AppRoutes() {
       
         {/* dashboard route */}
       <Route element={<DashboardLayout />}>
+
         <Route path="/dashboard" element={<Dashboard />}/>
         <Route path="/students" element={<Students />}/>
         <Route path="/teachers" element={<Teacher />}/>
         <Route path="/classes" element={<Classes />}/>
         <Route path="/attendance" element={<Attendance />}/>
         <Route path="/tests" element={<Tests />}/>
-        <Route path="results" element={<Results/>}/>
-        <Route path="activities" element={<Activities/>}/>
+        <Route path="/results" element={<Results/>}/>
+        <Route path="/activities" element={<Activities/>}/>
         
 
 

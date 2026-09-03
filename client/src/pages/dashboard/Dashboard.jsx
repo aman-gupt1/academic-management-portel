@@ -1,11 +1,5 @@
-import {
-  Users,
-  GraduationCap,
-  School,
-  FileText,
-  Trophy,
-  Activity,
-} from "lucide-react";
+import {Users, GraduationCap, School, FileText,Trophy, Activity,} from "lucide-react";
+import { useState, useEffect } from "react";
 
 import PageHeader from "../../components/common/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
@@ -13,40 +7,73 @@ import QuickActions from "../../components/dashboard/QuickActions";
 import RecentActivities from "../../components/dashboard/RecentActivities";
 import RecentStudents from "../../components/dashboard/RecentStudents";
 import RecentTeachers from "../../components/dashboard/RecentTeachers";
+import { useNavigate } from "react-router-dom";
+
+
+import *  as dashboardApi from '../../api/dashboardApi.js'
 
 export default function Dashboard() {
+const [dashboardStats, setDashboardStats] = useState(null);
+const [loading, setLoading] = useState(true);
+
+const navigate = useNavigate();
+
+
+// fetch dashboard stats from backend
+const fetchDashboardStats = async () => {
+  try {
+    setLoading(true);
+
+    const { data } = await dashboardApi.getDashboardStats();
+
+    console.log(data);
+
+    setDashboardStats(data.data); // ya data, response structure par depend karega
+  } catch (error) {
+    console.log(error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchDashboardStats();
+}, []);
+
+
+// stats card data
   const stats = [
-    {
-      title: "Students",
-      value: "1,250",
-      icon: Users,
-    },
-    {
-      title: "Teachers",
-      value: "85",
-      icon: GraduationCap,
-    },
-    {
-      title: "Classes",
-      value: "42",
-      icon: School,
-    },
-    {
-      title: "Tests",
-      value: "35",
-      icon: FileText,
-    },
-    {
-      title: "Results",
-      value: "120",
-      icon: Trophy,
-    },
-    {
-      title: "Activities",
-      value: "250",
-      icon: Activity,
-    },
-  ];
+  {
+    title: "Students",
+    value: dashboardStats?.totalStudents || 0,
+    icon: Users,
+  },
+  {
+    title: "Teachers",
+    value: dashboardStats?.totalTeachers || 0,
+    icon: GraduationCap,
+  },
+  {
+    title: "Classes",
+    value: dashboardStats?.totalClasses || 0,
+    icon: School,
+  },
+  {
+    title: "Tests",
+    value: dashboardStats?.totalTests || 0,
+    icon: FileText,
+  },
+  {
+    title: "Results",
+    value: dashboardStats?.totalResults || 0,
+    icon: Trophy,
+  },
+  {
+    title: "Activities",
+    value: dashboardStats?.totalActivities || 0,
+    icon: Activity,
+  },
+];
 
   return (
     <div className="space-y-8">
