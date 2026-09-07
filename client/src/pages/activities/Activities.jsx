@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import PageHeader from "../../components/common/PageHeader";
+import * as activityApi from '../../api/activityApi.js'
 
 import {
   Plus,
@@ -17,44 +18,81 @@ import {
 export default function Activities() {
   const [search, setSearch] = useState("");
 
-  const activities = [
-    {
-      id: 1,
-      name: "Annual Sports Day",
-      type: "Sports",
-      date: "20 Sep 2026",
-      venue: "School Ground",
-      participants: 350,
-      status: "Upcoming",
-    },
-    {
-      id: 2,
-      name: "Science Exhibition",
-      type: "Academic",
-      date: "25 Sep 2026",
-      venue: "Main Hall",
-      participants: 120,
-      status: "Upcoming",
-    },
-    {
-      id: 3,
-      name: "Cultural Fest",
-      type: "Cultural",
-      date: "30 Sep 2026",
-      venue: "Auditorium",
-      participants: 280,
-      status: "Upcoming",
-    },
-    {
-      id: 4,
-      name: "Debate Competition",
-      type: "Academic",
-      date: "12 Aug 2026",
-      venue: "Conference Room",
-      participants: 60,
-      status: "Completed",
-    },
-  ];
+  const [stats, setStats] = useState({
+  totalActivities: 0,
+  upcomingEvents: 0,
+  completedEvents: 0,
+  participants: 0,
+});
+
+const [activities, setActivities] = useState([]);
+
+const getActivityStats = async () => {
+  try {
+    const response =
+      await activityApi.getActivityStats();
+
+    setStats(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getAllActivities = async () => {
+  try {
+    const response =
+      await activityApi.getActivities();
+
+    setActivities(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+useEffect(() => {
+  getActivityStats();
+  getAllActivities();
+}, []);
+
+
+  // const activities = [
+  //   {
+  //     id: 1,
+  //     name: "Annual Sports Day",
+  //     type: "Sports",
+  //     date: "20 Sep 2026",
+  //     venue: "School Ground",
+  //     participants: 350,
+  //     status: "Upcoming",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Science Exhibition",
+  //     type: "Academic",
+  //     date: "25 Sep 2026",
+  //     venue: "Main Hall",
+  //     participants: 120,
+  //     status: "Upcoming",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Cultural Fest",
+  //     type: "Cultural",
+  //     date: "30 Sep 2026",
+  //     venue: "Auditorium",
+  //     participants: 280,
+  //     status: "Upcoming",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Debate Competition",
+  //     type: "Academic",
+  //     date: "12 Aug 2026",
+  //     venue: "Conference Room",
+  //     participants: 60,
+  //     status: "Completed",
+  //   },
+  // ];
 
   return (
     <div className="space-y-6">
@@ -73,25 +111,25 @@ export default function Activities() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Activities"
-          value="48"
+          value={stats.totalActivities}
           icon={<Activity size={22} />}
         />
 
         <StatCard
           title="Upcoming Events"
-          value="12"
+          value={stats.upcomingEvents}
           icon={<CalendarDays size={22} />}
         />
 
         <StatCard
           title="Completed Events"
-          value="36"
+          value={stats.completedEvents}
           icon={<Trophy size={22} />}
         />
 
         <StatCard
           title="Participants"
-          value="2,450"
+          value={stats.participants}
           icon={<Users size={22} />}
         />
       </div>

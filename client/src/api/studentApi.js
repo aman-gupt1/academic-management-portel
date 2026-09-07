@@ -1,8 +1,10 @@
 import api from './axios'
 
 // Get all students
-export const getStudents = async (page = 1, limit = 10) => {
-  return api.get(`/students?page=${page}&limit=${limit}`);
+export const getStudents = async (params = {}) => {
+  return api.get("/students", {
+    params,
+  });
 };
 
 // Get single student

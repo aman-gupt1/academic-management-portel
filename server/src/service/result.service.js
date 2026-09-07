@@ -357,6 +357,51 @@ return {
 
     return result;
   }
+
+ // ================= RESULT STATS =================
+async getResultStats() {
+  const totalResults = await this.Result.countDocuments();
+
+  const results = await this.Result.find();
+
+  const passCount = results.filter(
+    (result) => result.grade !== "F"
+  ).length;
+
+  const passRate =
+    totalResults > 0
+      ? ((passCount / totalResults) * 100).toFixed(1)
+      : 0;
+
+  const averageScore =
+    totalResults > 0
+      ? (
+          results.reduce(
+            (sum, result) =>
+              sum + result.marksObtained,
+            0
+          ) / totalResults
+        ).toFixed(1)
+      : 0;
+
+  const topPerformer = await this.Result.findOne()
+    .sort("-marksObtained")
+    .populate({
+      path: "studentId",
+      populate: {
+        path: "userId",
+        select: "name",
+      },
+    });
+
+  return {
+    totalResults,
+    passRate,
+    averageScore,
+    topPerformer,
+  };
+}
+  
 }
 
 

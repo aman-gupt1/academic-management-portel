@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import PageHeader from "../../components/common/PageHeader";
-
+import * as attendanceApi from '../../api/attendanceApi.js'
+import * as classApi from "../../api/classApi.js";
+import AttendanceDrawer from "../../components/attendance/AttendanceDrawer";
+import MarkAttendanceDrawer from "../../components/attendance/MarkAttendanceDrawer";
 import {
   Search,
   Download,
@@ -14,37 +17,107 @@ import {
 
 export default function Attendance() {
   const [search, setSearch] = useState("");
+  const [stats, setStats] = useState({
+  present: 0,
+  absent: 0,
+  late: 0,
+  attendanceRate: 0,
+});
+const [attendance, setAttendance] = useState([]);
 
-  const attendanceData = [
-    {
-      id: 1,
-      name: "Aman Gupta",
-      class: "Class 10-A",
-      date: "2026-09-12",
-      status: "Present",
-    },
-    {
-      id: 2,
-      name: "Rahul Kumar",
-      class: "Class 10-A",
-      date: "2026-09-12",
-      status: "Absent",
-    },
-    {
-      id: 3,
-      name: "Priya Sharma",
-      class: "Class 11-B",
-      date: "2026-09-12",
-      status: "Leave",
-    },
-    {
-      id: 4,
-      name: "Ankit Singh",
-      class: "Class 12-A",
-      date: "2026-09-12",
-      status: "Present",
-    },
-  ];
+const [selectedAttendance, setSelectedAttendance]=useState(null);
+const [drawerOpen, setDrawerOpen] = useState(false);
+
+const [markDrawerOpen, setMarkDrawerOpen] = useState(false);
+const [classes, setClasses] = useState([]);
+
+
+// fetch classes
+const fetchClasses = async () => {
+  try {
+    const response = await classApi.getClasses();
+
+    setClasses(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// get attendance stats
+const getAttendanceStats = async () => {
+  try {
+    const response =
+      await attendanceApi.getAttendanceStats();
+
+    setStats(response.data.data);
+    console.log ("Attendance Stats: ", response.data.data)
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+// fetch attendance 
+const fetchAttendance = async () => {
+  try {
+
+    const response =
+      await attendanceApi.getAttendance();
+
+    setAttendance(response.data.data);
+
+    console.log(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// handle view attendance
+
+const handleViewAttendance = (attendance) => {
+  setSelectedAttendance(attendance);
+  setDrawerOpen(true);
+};
+
+
+useEffect(() => {
+  getAttendanceStats();
+  fetchAttendance();
+  fetchClasses();
+}, []);
+
+  // const attendanceData = [
+  //   {
+  //     id: 1,
+  //     name: "Aman Gupta",
+  //     class: "Class 10-A",
+  //     date: "2026-09-12",
+  //     status: "Present",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Rahul Kumar",
+  //     class: "Class 10-A",
+  //     date: "2026-09-12",
+  //     status: "Absent",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Priya Sharma",
+  //     class: "Class 11-B",
+  //     date: "2026-09-12",
+  //     status: "Leave",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Ankit Singh",
+  //     class: "Class 12-A",
+  //     date: "2026-09-12",
+  //     status: "Present",
+  //   },
+  // ];
 
   return (
     <div className="space-y-6">
@@ -52,7 +125,9 @@ export default function Attendance() {
         title="Attendance Management"
         subtitle="Track and manage student attendance."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+          <button 
+         onClick={() => setMarkDrawerOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
             <Plus size={18} />
             Mark Attendance
           </button>
@@ -63,25 +138,25 @@ export default function Attendance() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Present"
-          value="1180"
+          value={stats.present}
           icon={<CheckCircle size={22} />}
         />
 
         <StatCard
           title="Absent"
-          value="45"
+          value={stats.absent}
           icon={<XCircle size={22} />}
         />
 
         <StatCard
-          title="Leave"
-          value="25"
+          title="Late"
+          value={stats.late}
           icon={<Clock3 size={22} />}
         />
 
         <StatCard
           title="Attendance Rate"
-          value="94%"
+          value={`${stats.attendanceRate}%`}
           icon={<Percent size={22} />}
         />
       </div>
@@ -156,29 +231,29 @@ export default function Attendance() {
             </thead>
 
             <tbody>
-              {attendanceData.map((item) => (
+              {attendance.map((item) => (
                 <tr
-                  key={item.id}
+                  key={item._id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4 font-medium">
-                    {item.name}
+                    {item.studentId?.userId?.name}
                   </td>
 
                   <td className="px-6 py-4">
-                    {item.class}
+                    {item.classId?.name}
                   </td>
 
                   <td className="px-6 py-4">
-                    {item.date}
+                    {new Date(item.date).toLocaleDateString()}
                   </td>
 
                   <td className="px-6 py-4">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        item.status === "Present"
+                        item.status === "present"
                           ? "bg-green-100 text-green-700"
-                          : item.status === "Absent"
+                          : item.status === "absent"
                           ? "bg-red-100 text-red-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
@@ -188,7 +263,9 @@ export default function Attendance() {
                   </td>
 
                   <td className="px-6 py-4 text-center">
-                    <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                    <button 
+                    onClick={() => handleViewAttendance(item)}
+                    className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                       <Eye size={18} />
                     </button>
                   </td>
@@ -222,6 +299,23 @@ export default function Attendance() {
           </div>
         </div>
       </div>
+
+      <AttendanceDrawer
+      open={drawerOpen}
+      attendance={selectedAttendance}
+      onClose={() => {
+        setDrawerOpen(false);
+        setSelectedAttendance(null);
+      }}
+    />
+
+    <MarkAttendanceDrawer
+      open={markDrawerOpen}
+      classes={classes}
+      onClose={() =>
+        setMarkDrawerOpen(false)
+      }
+    />
     </div>
   );
 }

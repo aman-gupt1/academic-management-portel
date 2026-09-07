@@ -1,7 +1,12 @@
 import React from 'react'
+import { useEffect, useState } from "react";
+import * as teacherApi from "../../api/teacherApi";
+import TeacherDrawer from "../../components/teacher/TeacherDrawer";
+import * as userApi from "../../api/userApi";
 
-import { useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
+import TeacherEditModal from "../../components/teacher/TeacherEditModal";
+import CreateTeacherModal from "../../components/teacher/CreateTeacherModel";
 
 import {
   Plus,
@@ -17,50 +22,176 @@ import {
 } from "lucide-react";
 
 export default function Teacher() {
-  const [search, setSearch] = useState("");
 
-  const teachers = [
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      employeeId: "T101",
-      department: "Science",
-      subject: "Mathematics",
-      email: "rahul@academexa.com",
-      phone: "9876543210",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Priya Verma",
-      employeeId: "T102",
-      department: "Science",
-      subject: "Physics",
-      email: "priya@academexa.com",
-      phone: "9876543211",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Ankit Singh",
-      employeeId: "T103",
-      department: "Commerce",
-      subject: "Accounts",
-      email: "ankit@academexa.com",
-      phone: "9876543212",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      name: "Sneha Gupta",
-      employeeId: "T104",
-      department: "Arts",
-      subject: "History",
-      email: "sneha@academexa.com",
-      phone: "9876543213",
-      status: "Active",
-    },
-  ];
+  const [search, setSearch] = useState("");
+  const [stats, setStats] = useState({
+    totalTeachers: 0,
+    activeTeachers: 0,
+    newTeachers: 0,
+    departments: 0,
+  });
+
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [selectedTeacher, setSelectedTeacher]=useState(null);
+  const [drawerOpen, setDrawerOpen]=useState(false);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    employeeId: "",
+    qualification: "",
+    subjects: "",
+    joinDate: "",
+  });
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [teacherUsers, setTeacherUsers] = useState([]);
+
+  
+
+  // fetch teachers stats
+  const fetchTeacherStats = async () => {
+  try {
+    const { data } = await teacherApi.getTeacherStats();
+    console.log("Teacher Stats:", data);
+
+    setStats(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// fetch all student
+  const fetchTeachers = async () => {
+  try {
+    const { data } = await teacherApi.getTeachers();
+    console.log("Teachers:", data);
+    setTeachers(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// fetch teacher users
+const fetchTeacherUsers = async () => {
+  try {
+    const { data } = await userApi.getTeacherUsers();
+    setTeacherUsers(data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// edit handler form and update 
+const handleEdit = (teacher) => {
+  setSelectedTeacher(teacher);
+
+  setFormData({
+    name: teacher.userId?.name || "",
+    email: teacher.userId?.email || "",
+    phone: teacher.userId?.phone || "",
+    employeeId: teacher.employeeId || "",
+    qualification: teacher.qualification || "",
+    subjects: teacher.subjects?.join(", ") || "",
+    joinDate: teacher.joinDate?.split("T")[0] || "",
+  });
+
+  setEditOpen(true);
+};
+
+const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleUpdate = async () => {
+  try {
+    const payload = {
+      employeeId: formData.employeeId,
+      qualification: formData.qualification,
+      subjects: formData.subjects
+        .split(",")
+        .map((item) => item.trim()),
+      joinDate: formData.joinDate,
+    };
+
+    await teacherApi.updateTeacher(selectedTeacher._id, payload);
+
+    fetchTeachers();
+
+    setEditOpen(false);
+
+    alert("Teacher updated successfully");
+  } catch (error) {
+    console.log(error);
+     console.log(error);
+  console.log(error.response?.data);
+    alert("Failed to update teacher");
+  }
+};
+
+// handle create teacher function 
+const handleCreateTeacher = async (formData) => {
+  try {
+    const payload = {
+      userId: formData.userId,
+      employeeId: formData.employeeId,
+      qualification: formData.qualification,
+      subjects: formData.subjects
+        .split(",")
+        .map((item) => item.trim()),
+      joinDate: formData.joinDate,
+    };
+
+    await teacherApi.createTeacher(payload);
+
+    fetchTeachers();
+    fetchTeacherStats();
+
+    setCreateOpen(false);
+
+    alert("Teacher created successfully");
+  } catch (error) {
+    console.log(error);
+    alert(
+      error.response?.data?.message ||
+      "Failed to create teacher"
+    );
+  }
+};
+
+
+// handle delete function
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this teacher?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await teacherApi.deleteTeacher(id);
+
+    fetchTeachers();
+
+    alert("Teacher deleted successfully");
+  } catch (error) {
+    console.log(error);
+    alert("Failed to delete teacher");
+  }
+};
+
+  useEffect(() => {
+  fetchTeacherStats();
+  fetchTeachers();
+  fetchTeacherUsers();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -68,7 +199,9 @@ export default function Teacher() {
         title="Teachers Management"
         subtitle="Manage all teachers and faculty members."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+          <button 
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
             <Plus size={18} />
             Add Teacher
           </button>
@@ -79,25 +212,25 @@ export default function Teacher() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Teachers"
-          value="85"
+           value={stats.totalTeachers}
           icon={<GraduationCap size={22} />}
         />
 
         <StatCard
           title="Active Teachers"
-          value="80"
+            value={stats.activeTeachers}
           icon={<UserCheck size={22} />}
         />
 
         <StatCard
           title="New Hires"
-          value="5"
+          value={stats.newTeachers}
           icon={<UserPlus size={22} />}
         />
 
         <StatCard
           title="Departments"
-          value="12"
+          value={stats.departments}
           icon={<Building2 size={22} />}
         />
       </div>
@@ -157,11 +290,11 @@ export default function Teacher() {
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
-                  Department
+                  Qualification
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
-                  Subject
+                  Subjects
                 </th>
 
                 <th className="px-6 py-4 text-left text-sm font-semibold text-slate-600">
@@ -185,66 +318,85 @@ export default function Teacher() {
             <tbody>
               {teachers.map((teacher) => (
                 <tr
-                  key={teacher.id}
+                  key={teacher._id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
+                  {/* Teacher */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-600">
-                        {teacher.name.charAt(0)}
+                        {teacher.userId?.name?.charAt(0) || "T"}
                       </div>
 
                       <div>
                         <p className="font-medium text-slate-800">
-                          {teacher.name}
+                          {teacher.userId?.name || "N/A"}
                         </p>
                       </div>
                     </div>
                   </td>
 
+                  {/* Employee ID */}
                   <td className="px-6 py-4">
                     {teacher.employeeId}
                   </td>
 
+                  {/* Qualification */}
                   <td className="px-6 py-4">
-                    {teacher.department}
+                    {teacher.qualification}
                   </td>
 
+                  {/* Subjects */}
                   <td className="px-6 py-4">
-                    {teacher.subject}
+                    {teacher.subjects?.join(", ")}
                   </td>
 
+                  {/* Email */}
                   <td className="px-6 py-4">
-                    {teacher.email}
+                    {teacher.userId?.email || "N/A"}
                   </td>
 
+                  {/* Phone */}
                   <td className="px-6 py-4">
-                    {teacher.phone}
+                    {teacher.userId?.phone || "N/A"}
                   </td>
 
+                  {/* Status */}
                   <td className="px-6 py-4">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        teacher.status === "Active"
+                        teacher.userId?.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {teacher.status}
+                      {teacher.userId?.isActive
+                        ? "Active"
+                        : "Inactive"}
                     </span>
                   </td>
 
+                  {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                      <button 
+                      onClick={()=>{
+                        setSelectedTeacher(teacher)
+                        setDrawerOpen(true)
+                      }}
+                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                         <Eye size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
+                      <button 
+                      onClick={() => handleEdit(teacher)}
+                      className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
                         <Pencil size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                      onClick={() => handleDelete(teacher._id)}
+                      className="rounded-lg p-2 text-red-600 hover:bg-red-50">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -280,6 +432,29 @@ export default function Teacher() {
           </div>
         </div>
       </div>
+
+      <TeacherDrawer
+        open={drawerOpen}
+        teacher={selectedTeacher}
+        onClose={() => setDrawerOpen(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <TeacherEditModal
+      open={editOpen}
+      onClose={() => setEditOpen(false)}
+      formData={formData}
+      handleChange={handleChange}
+      handleSubmit={handleUpdate}
+    />
+
+    <CreateTeacherModal
+      open={createOpen}
+      onClose={() => setCreateOpen(false)}
+      teacherUsers={teacherUsers}
+      onCreate={handleCreateTeacher}
+    />
     </div>
   );
 }

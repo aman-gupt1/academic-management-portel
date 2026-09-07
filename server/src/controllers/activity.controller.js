@@ -1,5 +1,5 @@
 import ActivityService from "../service/activity.service.js";
-import Activity from "../models/Activity.js";
+import Activity from '../models/Activity.js'
 import Student from "../models/Student.js";
 
 const activityService = new ActivityService(Activity,Student);
@@ -81,5 +81,27 @@ export const deleteActivity = async (req, res, next) => {
     });
   } catch (error) {
     next(error)
+  }
+};
+
+
+
+export const getActivityStats = async (
+  req,
+  res,
+  next
+) => {
+  try {
+
+    const stats =
+      await activityService.getActivityStats();
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+
+  } catch (error) {
+    next(error);
   }
 };

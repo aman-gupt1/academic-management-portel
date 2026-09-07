@@ -6,6 +6,8 @@ import {
   getAttendanceById,
   updateAttendance,
   deleteAttendance,
+  getAttendanceStats
+  
 } from "../controllers/attendance.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
@@ -14,6 +16,7 @@ const router = express.Router();
 
 router.post("/", authenticate, authorize("admin", "teacher"),createAttendance);
 router.get("/", authenticate,authorize("admin", "teacher", "student"), getAllAttendance);
+router.get("/stats", getAttendanceStats);
 router.get("/:id",authenticate, authorize("admin", "teacher", "student"), getAttendanceById);
 router.put("/:id",authenticate, authorize("admin", "teacher"), updateAttendance);
 router.delete("/:id",authenticate,authorize("admin"), deleteAttendance);

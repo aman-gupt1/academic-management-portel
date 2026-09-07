@@ -94,3 +94,25 @@ export const deleteAttendance = async (req, res, next) => {
 
   }
 };
+
+// Get Attendance Stats
+export const getAttendanceStats = async (
+  req,
+  res,
+  next
+) => {
+  try {
+
+    const stats = await attendanceService.getAttendanceStats();
+
+    return res.status(200).json({
+      success: true,
+      data: stats,
+    });
+
+  } catch (error) {
+
+    next(error);
+
+  }
+};

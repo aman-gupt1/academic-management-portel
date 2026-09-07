@@ -1,8 +1,9 @@
 import ClassService from "../service/class.service.js";
 import Class from "../models/Class.js";
 import Teacher from "../models/Teacher.js";
+import Student from '../models/Student.js'
 
-const classService = new ClassService(Class,Teacher);
+const classService = new ClassService(Class,Teacher,Student);
 
 
 // ================= CREATE CLASS =================
@@ -101,3 +102,19 @@ export const deleteClass = async (req, res, next) => {
 
   }
 };
+
+// ===== get class stats ============
+
+export const getClassStats = async (req, res , next)=>{
+  try {
+    const stats = await classService.getClassStats();
+
+    return res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.log(error.message)
+    next(error)
+  }
+}

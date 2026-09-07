@@ -31,6 +31,12 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [editOpen, setEditOpen]=useState(false);
 
+
+   const [filters, setFilters] = useState({
+    search: "",
+    classId: "",
+  });
+
   const [classes, setClasses] = useState([]);
   const [formData, setFormData] = useState({
   name: "",
@@ -67,11 +73,14 @@ const [stats, setStats] = useState({
 
 
   // fetch student 
-  const fetchStudents = async () => {
+const fetchStudents = async () => {
   try {
-    const { data } = await studentApi.getStudents();
-
-    console.log(data);
+    const { data } = await studentApi.getStudents({
+      page: 1,
+      limit: 10,
+      search: filters.search,
+      classId: filters.classId,
+    });
 
     setStudents(data.data);
   } catch (error) {
@@ -237,12 +246,15 @@ const fetchStudentStats = async () => {
 };
 
 useEffect(() => {
-  fetchStudents();
   fetchClasses();
   fetchClasses();
   fetchUsers();
   fetchStudentStats();
 }, []);
+
+useEffect(() => {
+  fetchStudents();
+}, [filters]);
 
   return (
     <div className="space-y-6">

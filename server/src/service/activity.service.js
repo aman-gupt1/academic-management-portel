@@ -241,6 +241,46 @@ class ActivityService {
 
     return activity;
   }
+  
+  
+
+  // ================= GET ACTIVITY STATS =================
+  async getActivityStats() {
+
+    const totalActivities =
+      await this.Activity.countDocuments();
+
+    const upcomingEvents =
+      await this.Activity.countDocuments({
+        status: "Upcoming",
+      });
+
+    const completedEvents =
+      await this.Activity.countDocuments({
+        status: "Completed",
+      });
+
+    const participantsResult =
+      await this.Activity.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalParticipants: {
+              $sum: "$participants",
+            },
+          },
+        },
+      ]);
+ return {
+      totalActivities,
+      upcomingEvents,
+      completedEvents,
+      participants:
+        participantsResult[0]
+          ?.totalParticipants || 0,
+    };
+  }
+
 }
 
 export default ActivityService;

@@ -20,6 +20,7 @@ class TestService {
       teacherId,
       testDate,
       totalMarks,
+      duration,
       description,
     } = testData;
 
@@ -32,11 +33,12 @@ class TestService {
       throw error;
     }
 
-    // Check teacher
     const teacher = await this.Teacher.findById(teacherId);
 
     if (!teacher) {
-      const error = new Error("Teacher not found");
+      const error = new Error(
+        "Teacher not found"
+      );
       error.statusCode = 404;
       throw error;
     }
@@ -49,6 +51,7 @@ class TestService {
       teacherId,
       testDate,
       totalMarks,
+      duration,
       description,
     });
 
@@ -282,6 +285,43 @@ return {
 
     return test;
   }
+
+
+  // ============ GET TEST STATS ============
+  async getTestStats() {
+  const today = new Date();
+
+  const totalTests = await this.Test.countDocuments();
+
+  const completedTests = await this.Test.countDocuments({
+      testDate: { $lt: today },
+    });
+
+  const scheduledTests = await this.Test.countDocuments({
+      testDate: { $gte: today },
+    });
+
+  const endOfWeek = new Date();
+  endOfWeek.setDate(
+    today.getDate() + 7
+  );
+
+  const upcomingThisWeek =
+    await this.Test.countDocuments({
+      testDate: {
+        $gte: today,
+        $lte: endOfWeek,
+      },
+    });
+
+  return {
+    totalTests,
+    upcomingThisWeek,
+    completedTests,
+    scheduledTests,
+  };
+}
+
 }
 
 export default TestService;

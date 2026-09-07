@@ -1,5 +1,11 @@
-import { useState } from "react";
+
 import PageHeader from "../../components/common/PageHeader";
+import { useEffect, useState } from "react";
+import * as testApi from "../../api/testApi.js";
+import * as classApi from "../../api/classApi";
+import * as teacherApi from "../../api/teacherApi";
+import CreateTestModal from "../../components/tests/CreateTestModal.jsx";
+import TestDetailsDrawer from "../../components/tests/TestDetailsDrawer";
 
 import {
   Plus,
@@ -15,50 +21,182 @@ import {
 } from "lucide-react";
 
 export default function Tests() {
-  const [search, setSearch] = useState("");
 
-  const tests = [
-    {
-      id: 1,
-      name: "Mathematics Mid Term",
-      subject: "Mathematics",
-      class: "10-A",
-      date: "15 Sep 2026",
-      marks: 100,
-      duration: "2 Hours",
-      status: "Upcoming",
-    },
-    {
-      id: 2,
-      name: "Science Quiz",
-      subject: "Science",
-      class: "11-B",
-      date: "18 Sep 2026",
-      marks: 50,
-      duration: "1 Hour",
-      status: "Upcoming",
-    },
-    {
-      id: 3,
-      name: "English Unit Test",
-      subject: "English",
-      class: "12-A",
-      date: "02 Sep 2026",
-      marks: 100,
-      duration: "2 Hours",
-      status: "Completed",
-    },
-    {
-      id: 4,
-      name: "Physics Assessment",
-      subject: "Physics",
-      class: "11-A",
-      date: "25 Aug 2026",
-      marks: 70,
-      duration: "90 Minutes",
-      status: "Completed",
-    },
-  ];
+const [search, setSearch] = useState("");
+const [stats, setStats] = useState({
+  totalTests: 0,
+  upcomingTests: 0,
+  completedTests: 0,
+  scheduledTests: 0,
+});
+
+  const [tests, setTests] = useState([])
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+
+  const [classes, setClasses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+
+  const [openViewDrawer, setOpenViewDrawer]=useState(false);
+  const [selectedTest, setSelectedTest]=useState(null);
+
+  const [editTest, setEditTest] = useState(null);
+
+  // fetch classes 
+  const fetchClasses = async () => {
+  try {
+    const response = await classApi.getClasses();
+
+    setClasses(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+  // get stats 
+  const getTestStats = async () => {
+  try {
+    const response =
+      await testApi.getTestStats();
+
+    setStats(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const fetchTests = async () => {
+  try {
+    const response =
+      await testApi.getTests();
+
+    setTests(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// fetch teachers
+const fetchTeachers = async () => {
+  try {
+    const response = await teacherApi.getTeachers();
+    console.log("GET ALL TEACHER FOR  TEST : " 
+      ,response.data.data)
+    setTeachers(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// handle delete utton 
+const handleDeleteTest = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this test?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await testApi.deleteTest(id);
+
+    fetchTests();
+    getTestStats();
+
+    alert("Test deleted successfully");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleCreateTest = async (formData) => {
+   console.log(formData);
+  try {
+    await testApi.createTest(formData);
+
+    await fetchTests();
+    await getTestStats();
+
+    setOpenCreateModal(false);
+
+    alert("Test created successfully");
+
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to create test"
+    );
+  }
+};
+
+// HANDLE EDIT 
+
+const handleSaveTest = async (formData) => {
+  try {
+
+    if (editTest) {
+
+      await testApi.updateTest(
+        editTest._id,
+        formData
+      );
+
+      alert("Test updated successfully");
+
+    } else {
+
+      await testApi.createTest(
+        formData
+      );
+
+      alert("Test created successfully");
+    }
+
+    fetchTests();
+    getTestStats();
+
+    setOpenCreateModal(false);
+    setEditTest(null);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// handle update test
+const handleUpdateTest = async (formData) => {
+  try {
+    await testApi.updateTest(
+      editTest._id,
+      formData
+    );
+
+    await fetchTests();
+    await getTestStats();
+
+    setOpenCreateModal(false);
+    setEditTest(null);
+
+    alert("Test updated successfully");
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update test"
+    );
+  }
+};
+
+useEffect(() => {
+  getTestStats();
+  fetchTests();
+  fetchClasses();
+  fetchTeachers();
+}, []);
 
   return (
     <div className="space-y-6">
@@ -66,7 +204,9 @@ export default function Tests() {
         title="Tests Management"
         subtitle="Create, schedule and manage academic tests."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
+          <button 
+          onClick={() => setOpenCreateModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
             <Plus size={18} />
             Create Test
           </button>
@@ -77,67 +217,29 @@ export default function Tests() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Tests"
-          value="35"
+          value={stats.totalTests}
           icon={<ClipboardCheck size={22} />}
         />
 
         <StatCard
-          title="Upcoming Tests"
-          value="8"
+          title="Upcoming This Week"
+          value={stats.upcomingTests}
           icon={<CalendarDays size={22} />}
         />
 
         <StatCard
           title="Completed Tests"
-          value="27"
+          value={stats.completedTests}
           icon={<CheckCircle size={22} />}
         />
 
         <StatCard
-          title="Subjects Covered"
-          value="12"
+          title="Scheduled Tests"
+          value={stats.scheduledTests}
           icon={<BookOpen size={22} />}
         />
       </div>
 
-      {/* Upcoming Tests */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold text-slate-800">
-          Upcoming This Week
-        </h3>
-
-        <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
-            <div>
-              <p className="font-medium">
-                Mathematics Mid Term
-              </p>
-              <p className="text-sm text-slate-500">
-                Class 10-A
-              </p>
-            </div>
-
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-              15 Sep
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
-            <div>
-              <p className="font-medium">
-                Science Quiz
-              </p>
-              <p className="text-sm text-slate-500">
-                Class 11-B
-              </p>
-            </div>
-
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-              18 Sep
-            </span>
-          </div>
-        </div>
-      </div>
 
       {/* Filters */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -229,65 +331,85 @@ export default function Tests() {
             </thead>
 
             <tbody>
-              {tests.map((test) => (
-                <tr
-                  key={test.id}
-                  className="border-t border-slate-100 hover:bg-slate-50"
-                >
-                  <td className="px-6 py-4 font-medium text-slate-800">
-                    {test.name}
-                  </td>
+      {tests.map((test) => {
 
-                  <td className="px-6 py-4">
-                    {test.subject}
-                  </td>
+        const status =
+          new Date(test.testDate) > new Date()
+            ? "Upcoming"
+            : "Completed";
 
-                  <td className="px-6 py-4">
-                    {test.class}
-                  </td>
+    return (
+      <tr
+        key={test._id}
+        className="border-t border-slate-100 hover:bg-slate-50"
+      >
+        <td className="px-6 py-4 font-medium text-slate-800">
+          {test.title}
+        </td>
 
-                  <td className="px-6 py-4">
-                    {test.date}
-                  </td>
+        <td className="px-6 py-4">
+          {test.subject}
+        </td>
 
-                  <td className="px-6 py-4">
-                    {test.marks}
-                  </td>
+        <td className="px-6 py-4">
+          {test.classId?.name} - {test.classId?.section}
+        </td>
 
-                  <td className="px-6 py-4">
-                    {test.duration}
-                  </td>
+        <td className="px-6 py-4">
+          {new Date(test.testDate).toLocaleDateString()}
+        </td>
 
-                  <td className="px-6 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        test.status === "Upcoming"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {test.status}
-                    </span>
-                  </td>
+        <td className="px-6 py-4">
+          {test.totalMarks}
+        </td>
 
-                  <td className="px-6 py-4">
-                    <div className="flex justify-center gap-2">
-                      <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
-                        <Eye size={18} />
-                      </button>
+        <td className="px-6 py-4">
+          {test.duration || "-"} Min
+        </td>
 
-                      <button className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
-                        <Pencil size={18} />
-                      </button>
+        <td className="px-6 py-4">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              status === "Upcoming"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-green-100 text-green-700"
+            }`}
+          >
+            {status}
+          </span>
+        </td>
 
-                      <button className="rounded-lg p-2 text-red-600 hover:bg-red-50">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+        <td className="px-6 py-4">
+          <div className="flex justify-center gap-2">
+            <button 
+            onClick={() => {
+              setSelectedTest(test);
+              setOpenViewDrawer(true);
+            }}
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+              <Eye size={18} />
+            </button>
+
+            <button 
+            onClick={() => {
+              setEditTest(test);
+              setOpenCreateModal(true);
+            }}
+            className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
+              <Pencil size={18} />
+            </button>
+
+            <button 
+            onClick={() => handleDeleteTest(test._id)}
+            className="rounded-lg p-2 text-red-600 hover:bg-red-50">
+              <Trash2 size={18} />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
           </table>
         </div>
 
@@ -316,6 +438,31 @@ export default function Tests() {
           </div>
         </div>
       </div>
+
+      <CreateTestModal
+        open={openCreateModal}
+        onClose={() => {
+          setOpenCreateModal(false);
+          setEditTest(null);
+        }}
+        onSubmit={
+    editTest
+      ? handleUpdateTest
+      : handleCreateTest
+  }
+        classes={classes}
+        teachers={teachers}
+        editData={editTest}
+      />
+
+      <TestDetailsDrawer
+        open={openViewDrawer}
+        onClose={() => {
+          setOpenViewDrawer(false);
+          setSelectedTest(null);
+        }}
+        test={selectedTest}
+      />
     </div>
   );
 }

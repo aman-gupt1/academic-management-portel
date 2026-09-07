@@ -92,7 +92,7 @@ class TeacherService {
    let query = this.Teacher.find(filter)
     .populate(
       "userId",
-      "name email role profileImg"
+      "name phone email role  isActive profileImg"
     );
 
   // Pagination
@@ -192,10 +192,10 @@ class TeacherService {
       employeeId !== existingTeacher.employeeId
     ) {
 
-      const duplicateTeacher =
-        await Teacher.findOne({
-          employeeId,
-          _id: { $ne: teacherId },
+
+        const duplicateTeacher =await this.Teacher.findOne({
+         employeeId,
+        _id: { $ne: teacherId },
         });
 
 
@@ -269,6 +269,37 @@ class TeacherService {
 
     return teacher;
   }
+
+
+  // ============ GET TEACHER STATS ==========
+  async getTeacherStats() {
+  const totalTeachers = await this.Teacher.countDocuments();
+
+  const activeTeachers = await this.Teacher.countDocuments({
+      userId: {
+        $exists: true,
+      },
+    });
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const newTeachers = await this.Teacher.countDocuments({
+      createdAt: {
+        $gte: thirtyDaysAgo,
+      },
+    });
+
+  const departments = await this.Teacher.distinct("department");
+
+  return {
+    totalTeachers,
+    activeTeachers,
+    newTeachers,
+    departments:
+      departments.length,
+  };
+}
 }
 
 

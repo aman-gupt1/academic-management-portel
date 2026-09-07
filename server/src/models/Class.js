@@ -20,8 +20,12 @@ const classSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
-    classTeacherId: {
+    
+    isActive: {
+    type: Boolean,
+    default: true,
+  },
+  classTeacherId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Teacher",
       required: true,

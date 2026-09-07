@@ -6,6 +6,7 @@ import {
   getTestById,
   updateTest,
   deleteTest,
+  getTestStats
 } from "../controllers/test.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/role.middleware.js";
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", authenticate, authorize("admin", "teacher"),createTest);
 router.get("/", getAllTests);
+router.get("/stats", getTestStats);
 
 // all can access these 
 router.get("/:id",authenticate, getTestById);

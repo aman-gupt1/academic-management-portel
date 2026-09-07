@@ -2,37 +2,21 @@ import mongoose from "mongoose";
 
 const activitySchema = new mongoose.Schema(
   {
-    studentId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
-      required: true,
-    },
-
     title: {
       type: String,
       required: true,
-      trim: true,
     },
 
-    category: {
+    type: {
       type: String,
-      required: true,
-      trim: true,
       enum: [
         "Sports",
-        "Cultural",
         "Academic",
+        "Cultural",
         "Competition",
-        "Workshop",
-        "Seminar",
         "Other",
       ],
-    },
-
-    description: {
-      type: String,
-      trim: true,
-      default: "",
+      required: true,
     },
 
     date: {
@@ -40,23 +24,39 @@ const activitySchema = new mongoose.Schema(
       required: true,
     },
 
-    achievement: {
+    venue: {
       type: String,
-      trim: true,
+      required: true,
+    },
+
+    participants: {
+      type: Number,
+      default: 0,
+    },
+
+    description: {
+      type: String,
       default: "",
     },
 
-    certification: {
+    status: {
       type: String,
-      trim: true,
-      default: "",
+      enum: [
+        "Upcoming",
+        "Completed",
+      ],
+      default: "Upcoming",
     },
   },
   {
-    timestamps: true, // createdAt & updatedAt
+    timestamps: true,
   }
 );
 
-const Activity = mongoose.model("Activity", activitySchema);
+
+const Activity = mongoose.model(
+  "Activity",
+  activitySchema
+);
 
 export default Activity;

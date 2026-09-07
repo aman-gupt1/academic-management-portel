@@ -103,3 +103,22 @@ export const deleteResult = async (req, res, next) => {
    next(error)
   }
 };
+
+// ================= RESULT STATS =================
+export const getResultStats = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const stats =
+      await resultService.getResultStats();
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

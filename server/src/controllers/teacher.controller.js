@@ -72,10 +72,10 @@ export const getTeacherById = async (req, res, next) => {
 export const updateTeacher = async (req, res, next) => {
   try {
 
-    const teacher =
-      await teacherService.updateTeacher(
+    const teacher = await teacherService.updateTeacher(
         req.params.id,
-        req.body
+        req.body,
+        { new: true }
       );
 
     return res.status(200).json({
@@ -111,3 +111,20 @@ export const deleteTeacher = async (req, res, next) => {
 
   }
 };
+
+
+
+//get teacers stats
+
+export const getTeacherStats =async (req, res,next) => {
+    try {
+      const stats = await teacherService.getTeacherStats();
+
+      res.status(200).json({
+        success: true,
+        data: stats,
+      });
+    } catch (error) {
+      next(error)
+    }
+  };

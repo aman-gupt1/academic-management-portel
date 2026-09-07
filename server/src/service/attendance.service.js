@@ -10,7 +10,30 @@ constructor(attendanceModel, studentModel,classModel, teacherModel){
   // ================= CREATE ATTENDANCE =================  
   async createAttendance(attendanceData) {
 
-    const {
+    if(Array.isArray(attendanceData)){
+      const attendanceRecords=[];
+
+      for(const item of attendanceData){
+        const attendanceDate = new Date(item.date);
+        attendanceDate.setHours(0, 0, 0, 0);
+
+        attendanceRecords.push({
+          studentId: item.studentId,
+          classId: item.classId,
+          date: attendanceDate,
+          status: item.status,
+          markedBy: item.markedBy,
+        })
+      }
+
+
+      // instert in bulk
+      return await this.Attendance.insertMany(attendanceRecords)
+    }
+
+    
+    // existing single attendance logic 
+     const {
       studentId,
       classId,
       date,
@@ -18,57 +41,16 @@ constructor(attendanceModel, studentModel,classModel, teacherModel){
       markedBy,
     } = attendanceData;
 
-    // Check student
-    const student = await this.Student.findById(studentId);
+    const attendanceDate = new Date(date);
+    attendanceDate.setHours(0, 0, 0, 0);
 
-    if (!student) {
-      const error = new Error("Student not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Check class
-    const classData = await this.Class.findById(classId);
-
-    if (!classData) {
-      const error = new Error("Class not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Check teacher
-    const teacher = await this.Teacher.findById(markedBy);
-
-    if (!teacher) {
-      const error = new Error("Teacher not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Check duplicate attendance
-    const existingAttendance = await this.Attendance.findOne({
-      studentId,
-      date,
-    });
-
-    if (existingAttendance) {
-      const error = new Error(
-        "Attendance already marked for this student on this date"
-      );
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // Create attendance
-    const attendance = await this.Attendance.create({
-      studentId,
-      classId,
-      date,
-      status,
-      markedBy,
-    });
-
-    return attendance;
+    return  await this.Attendance.create({
+    studentId,
+    classId,
+    date:attendanceDate,
+    status,
+    markedBy,
+  });
   }
 
 
@@ -292,6 +274,37 @@ const total = await this.Attendance.countDocuments(filter);
 
     return attendance;
   }
+
+
+  // ================= GET ATTENDANCE STATS =================
+async getAttendanceStats() {
+
+  const total = await this.Attendance.countDocuments();
+
+  const present = await this.Attendance.countDocuments({
+    status: "present",
+  });
+
+  const absent = await this.Attendance.countDocuments({
+    status: "absent",
+  });
+
+  const late = await this.Attendance.countDocuments({
+    status: "late",
+  });
+
+  const attendanceRate =
+    total > 0
+      ? ((present / total) * 100).toFixed(1)
+      : 0;
+
+  return {
+    present,
+    absent,
+    late,
+    attendanceRate,
+  };
+}
 }
 
 export default AttendanceService;

@@ -2,9 +2,10 @@ class ClassService {
 
 
   // constructor
-  constructor(classModel,teacherModel){
+  constructor(classModel, teacherModel, studentModel){
     this.Class=classModel,
     this.Teacher=teacherModel
+    this.Student=studentModel
   }
 
   // ================= CREATE CLASS =================
@@ -16,6 +17,11 @@ class ClassService {
       academicYear,
       classTeacherId,
     } = classData;
+
+  console.log("Received classData:", classData);
+  console.log("Received classTeacherId:", classTeacherId);
+
+  console.log("Teacher Model:", this.Teacher);
 
     // Check teacher exists
     const teacher = await this.Teacher.findById(classTeacherId);
@@ -244,6 +250,28 @@ return {
     }
 
     return deletedClass;
+  }
+
+  // ============ GET CLASS STATS =====
+  async getClassStats(){
+
+    const totalClasses=await this.Class.countDocuments();
+    const activeClasses=await this.Class.countDocuments({isActive:true})
+    const totalStudents = await this.Student.countDocuments();
+
+    const rooms= await this.Class.countDocuments({
+      roomNumber:{
+        $exists:true,
+        $ne:"-"
+      }
+    })
+
+    return {
+      totalClasses,
+      activeClasses,
+      totalStudents,
+      rooms
+    }
   }
 }
 

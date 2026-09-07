@@ -20,11 +20,11 @@ const testSchema = new mongoose.Schema(
       required: true,
     },
 
-    teacherId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher",
-      required: true,
-    },
+    // teacherId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "Teacher",
+    //   required: true,
+    // },
 
     testDate: {
       type: Date,
@@ -36,12 +36,21 @@ const testSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-
+      teacherId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Teacher",
+        required: true,
+      },
     description: {
       type: String,
       trim: true,
       default: "",
     },
+
+    duration: {
+  type: Number,
+  required: true,
+}
   },
   {
     timestamps: true, // createdAt & updatedAt

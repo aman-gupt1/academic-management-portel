@@ -1,5 +1,10 @@
 import { useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
+import ClassEditModal from "../../components/classes/ClassEditModal.jsx";
+import * as classApi from '../../api/classApi.js'
+import ClassDrawer from "../../components/classes/ClassDrawer";
+import * as teacherApi from "../../api/teacherApi.js";
+import CreateClassModal from "../../components/classes/CreateClassModel.jsx";
 
 import {
   Plus,
@@ -13,48 +18,166 @@ import {
   DoorOpen,
   CheckCircle,
 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Classes() {
   const [search, setSearch] = useState("");
+  const [stat, setStat] = useState({
+  totalClasses: 0,
+  activeClasses: 0,
+  totalStudents: 0,
+  rooms: 0,
+  });
 
-  const classes = [
-    {
-      id: 1,
-      className: "Class 10",
-      section: "A",
-      teacher: "Rahul Sharma",
-      students: 42,
-      room: "R-101",
-      status: "Active",
-    },
-    {
-      id: 2,
-      className: "Class 10",
-      section: "B",
-      teacher: "Priya Verma",
-      students: 38,
-      room: "R-102",
-      status: "Active",
-    },
-    {
-      id: 3,
-      className: "Class 11",
-      section: "A",
-      teacher: "Ankit Singh",
-      students: 35,
-      room: "R-201",
-      status: "Inactive",
-    },
-    {
-      id: 4,
-      className: "Class 12",
-      section: "A",
-      teacher: "Sneha Gupta",
-      students: 40,
-      room: "R-301",
-      status: "Active",
-    },
-  ];
+  const [classes, setClasses] = useState([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [teachers, setTeachers] = useState([]);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [formData, setFormData] = useState({
+  name: "",
+  section: "",
+  academicYear: "",
+  classTeacherId: "",
+});
+
+  // fetch stats
+  const getClassStats=async()=>{
+    try {
+      const response= await classApi.getClassStats()
+      setStat(response.data.data)
+      console.log(response.data.data)
+    } catch (error) {
+      console.log("Stats Error :", error.message)
+    }
+  }
+
+  // fetch classes
+  const fetchClasses = async () => {
+  try {
+    const response = await classApi.getClasses();
+
+    console.log("Classes:", response.data.data);
+
+    setClasses(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// delete classes
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this class?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await classApi.deleteClass(id);
+
+    fetchClasses();
+    getClassStats();
+
+    alert("Class deleted successfully");
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to delete class"
+    );
+  }
+};
+
+
+// fetch teachers
+const fetchTeachers = async () => {
+  try {
+    const { data } = await teacherApi.getTeachers();
+
+    setTeachers(data.data);
+
+    console.log("Teachers:", data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// create classes
+const handleCreateClass = async (formData) => {
+  try {
+    await classApi.createClass(formData);
+
+    fetchClasses();
+    getClassStats();
+
+    setCreateOpen(false);
+
+    alert("Class created successfully");
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to create class"
+    );
+  }
+};
+
+// handle edit and change
+const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+const handleEdit = (item) => {
+  setSelectedClass(item);
+
+  setFormData({
+    name: item.name || "",
+    section: item.section || "",
+    academicYear: item.academicYear || "",
+    classTeacherId: item.classTeacherId?._id || "",
+  });
+
+  setEditOpen(true);
+};
+
+const handleUpdate = async () => {
+  try {
+    await classApi.updateClass(
+      selectedClass._id,
+      formData
+    );
+
+    fetchClasses();
+    getClassStats();
+
+    setEditOpen(false);
+
+    alert("Class updated successfully");
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error.response?.data?.message ||
+      "Failed to update class"
+    );
+  }
+};
+
+
+  useEffect(()=>{
+    getClassStats()
+    fetchClasses();
+    fetchTeachers();
+  },[])
 
   return (
     <div className="space-y-6">
@@ -62,7 +185,9 @@ export default function Classes() {
         title="Classes Management"
         subtitle="Manage classes, sections and class teachers."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+          <button 
+          onClick={() => setCreateOpen(true)}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
             <Plus size={18} />
             Add Class
           </button>
@@ -73,25 +198,25 @@ export default function Classes() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Classes"
-          value="42"
+          value={stat.totalClasses}
           icon={<School size={22} />}
         />
 
         <StatCard
           title="Active Classes"
-          value="38"
+         value={stat.activeClasses}
           icon={<CheckCircle size={22} />}
         />
 
         <StatCard
           title="Rooms"
-          value="25"
+          value={stat.rooms}
           icon={<DoorOpen size={22} />}
         />
 
         <StatCard
           title="Students"
-          value="1250"
+          value={stat.totalStudents}
           icon={<Users size={22} />}
         />
       </div>
@@ -179,11 +304,11 @@ export default function Classes() {
             <tbody>
               {classes.map((item) => (
                 <tr
-                  key={item.id}
+                  key={item._id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4 font-medium text-slate-800">
-                    {item.className}
+                    {item.name}
                   </td>
 
                   <td className="px-6 py-4">
@@ -191,40 +316,49 @@ export default function Classes() {
                   </td>
 
                   <td className="px-6 py-4">
-                    {item.teacher}
+                    {item.classTeacherId?.userId?.name || "Not Assigned"}
                   </td>
 
                   <td className="px-6 py-4">
-                    {item.students}
+                    -
                   </td>
 
                   <td className="px-6 py-4">
-                    {item.room}
+                    -
                   </td>
 
                   <td className="px-6 py-4">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        item.status === "Active"
+                        item.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {item.status}
+                      {item.isActive?"Active":"Inactive"}
                     </span>
                   </td>
 
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                      <button 
+                      onClick={() => {
+                      setSelectedClass(item);
+                      setDrawerOpen(true);
+                    }}
+                      className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 cursor-pointer">
                         <Eye size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
+                      <button 
+                      onClick={() => handleEdit(item)}
+                      className="rounded-lg p-2 text-blue-600 hover:bg-blue-50 cursor-pointer">
                         <Pencil size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                       onClick={() => handleDelete(item._id)}
+                      className="rounded-lg p-2 text-red-600 hover:bg-red-50 cursor-pointer">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -260,6 +394,29 @@ export default function Classes() {
           </div>
         </div>
       </div>
+      <ClassDrawer
+        open={drawerOpen}
+        classData={selectedClass}
+        onClose={() => setDrawerOpen(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <CreateClassModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        teachers={teachers}
+        onCreate={handleCreateClass}
+      />
+
+      <ClassEditModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        formData={formData}
+        handleChange={handleChange}
+        handleSubmit={handleUpdate}
+        teachers={teachers}
+      />
     </div>
   );
 }

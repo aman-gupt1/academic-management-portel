@@ -1,5 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
+import ResultDrawer from "../../components/results/ResultDrawer.jsx";
+import * as resultApi from "../../api/resultApi.js";
+import * as testApi from "../../api/testApi.js";
+import * as studentApi from "../../api/studentApi.js";
+import ResultModal from "../../components/results/ResultModel.jsx";
 
 import {
   Trophy,
@@ -9,49 +14,177 @@ import {
   Search,
   Download,
   Eye,
+  Plus,
 } from "lucide-react";
 
 export default function Results() {
   const [search, setSearch] = useState("");
 
-  const results = [
-    {
-      id: 1,
-      student: "Aman Gupta",
-      class: "10-A",
-      exam: "Mathematics Mid Term",
-      percentage: "95%",
-      grade: "A+",
-      status: "Pass",
-    },
-    {
-      id: 2,
-      student: "Priya Sharma",
-      class: "10-A",
-      exam: "Mathematics Mid Term",
-      percentage: "93%",
-      grade: "A",
-      status: "Pass",
-    },
-    {
-      id: 3,
-      student: "Rahul Kumar",
-      class: "11-B",
-      exam: "Science Quiz",
-      percentage: "45%",
-      grade: "D",
-      status: "Fail",
-    },
-    {
-      id: 4,
-      student: "Ankit Singh",
-      class: "12-A",
-      exam: "English Unit Test",
-      percentage: "88%",
-      grade: "A",
-      status: "Pass",
-    },
-  ];
+  const [results, setResults] = useState([]);
+
+  const [stats, setStats] = useState({
+    totalResults: 0,
+    passRate: 0,
+    averageScore: 0,
+    topPerformer: null,
+  });
+
+const [selectedResult, setSelectedResult] = useState(null);
+const [openDrawer, setOpenDrawer] = useState(false);
+
+const [openModal, setOpenModal] = useState(false);
+const [editResult, setEditResult] = useState(null);
+const [tests, setTests] = useState([]);
+const [students, setStudents] = useState([]);
+
+// get fetch result statss
+  const getResultStats = async () => {
+  try {
+    const response = await resultApi.getResultStats();
+
+    setStats(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+// get all results
+const getAllResults = async () => {
+  try {
+    const response = await resultApi.getResults();
+
+    console.log("this is result respons : ",response.data.data)
+
+    setResults(response.data.data);
+    
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+const handleEdit = (result) => {
+  setEditResult(result);
+  setOpenModal(true);
+
+};
+
+
+const handleDelete = async (id) => {
+
+  const ok = window.confirm(
+    "Delete this result?"
+  );
+
+  if (!ok) return;
+
+  try {
+
+    await resultApi.deleteResult(id);
+
+    getAllResults();
+
+    getResultStats();
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+const handleCreateResult = async (
+  formData
+) => {
+  try {
+
+    await resultApi.createResult(
+      formData
+    );
+
+    getAllResults();
+
+    getResultStats();
+
+    setOpenModal(false);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleUpdateResult = async (
+  formData
+) => {
+  try {
+
+    await resultApi.updateResult(
+      editResult._id,
+      formData
+    );
+
+    getAllResults();
+
+    getResultStats();
+
+    setEditResult(null);
+
+    setOpenModal(false);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getAllTests = async () => {
+  try {
+
+    const response =
+      await testApi.getTests({
+        all: true,
+      });
+
+    setTests(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getAllStudents = async () => {
+  try {
+
+    const response =
+      await studentApi.getStudents({
+        all: true,
+      });
+
+    setStudents(response.data.data);
+
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+
+const handleSubmitResult = (formData) => {
+
+  if (editResult) {
+    handleUpdateResult(formData);
+  } else {
+    handleCreateResult(formData);
+  }
+
+};
+
+useEffect(() => {
+  getResultStats();
+  getAllResults();
+   getAllTests();
+  getAllStudents();
+}, []);
+
 
   return (
     <div className="space-y-6">
@@ -59,9 +192,14 @@ export default function Results() {
         title="Results Management"
         subtitle="Track academic performance and examination results."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
-            <Download size={18} />
-            Export Results
+          <button 
+          onClick={() => {
+        setEditResult(null);
+        setOpenModal(true);
+      }}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+            <Plus size={18} />
+            Create Results
           </button>
         }
       />
@@ -70,31 +208,35 @@ export default function Results() {
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Total Results"
-          value="1,250"
+          value={stats.totalResults}
           icon={<Users size={22} />}
         />
 
         <StatCard
           title="Pass Rate"
-          value="92%"
+          value={`${stats.passRate}%`}
           icon={<TrendingUp size={22} />}
         />
 
-        <StatCard
-          title="Top Performers"
-          value="25"
+       <StatCard
+          title="Top Performance"
+          value={
+            stats.topPerformer
+              ? `${stats.topPerformer.marksObtained}`
+              : "-"
+          }
           icon={<Trophy size={22} />}
         />
 
         <StatCard
           title="Average Score"
-          value="78%"
+          value={`${stats.averageScore}%`}
           icon={<Award size={22} />}
         />
       </div>
 
       {/* Top Performers */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      {/* <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h3 className="mb-4 text-lg font-semibold text-slate-800">
           Top Performers
         </h3>
@@ -145,7 +287,7 @@ export default function Results() {
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Filters */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -214,55 +356,100 @@ export default function Results() {
               </tr>
             </thead>
 
+                {/* table body */}
             <tbody>
-              {results.map((result) => (
-                <tr
-                  key={result.id}
-                  className="border-t hover:bg-slate-50"
-                >
-                  <td className="px-6 py-4 font-medium">
-                    {result.student}
-                  </td>
+              {results.map((result) => {
 
-                  <td className="px-6 py-4">
-                    {result.class}
-                  </td>
+                const percentage = (
+                  (result.marksObtained /
+                    result.testId?.totalMarks) *
+                  100
+                ).toFixed(1);
 
-                  <td className="px-6 py-4">
-                    {result.exam}
-                  </td>
+                return (
+                  <tr
+                    key={result._id}
+                    className="border-t hover:bg-slate-50"
+                  >
+                    {/* Student */}
+                    <td className="px-6 py-4 font-medium">
+                      {result.studentId?.userId?.name || "N/A"}
+                    </td>
 
-                  <td className="px-6 py-4 font-semibold">
-                    {result.percentage}
-                  </td>
+                    {/* Class */}
+                    <td className="px-6 py-4">
+                      {result.testId?.classId?.name}-
+                      {result.testId?.classId?.section}
+                    </td>
 
-                  <td className="px-6 py-4">
-                    {result.grade}
-                  </td>
+                    {/* Exam */}
+                    <td className="px-6 py-4">
+                      {result.testId?.title}
+                    </td>
 
-                  <td className="px-6 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        result.status === "Pass"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {result.status}
-                    </span>
-                  </td>
+                    {/* Percentage */}
+                    <td className="px-6 py-4 font-semibold">
+                      {percentage}%
+                    </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <button className="rounded-lg p-2 hover:bg-slate-100">
-                      <Eye size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    {/* Grade */}
+                    <td className="px-6 py-4">
+                      {result.grade}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-6 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${
+                          Number(percentage) >= 40
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {Number(percentage) >= 40
+                          ? "Pass"
+                          : "Fail"}
+                      </span>
+                    </td>
+
+                    {/* Action */}
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => {
+                          setSelectedResult(result);
+                          setOpenDrawer(true);
+                        }}
+                      className="rounded-lg p-2 hover:bg-slate-100">
+                        <Eye size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
+
+      <ResultDrawer
+        open={openDrawer}
+        result={selectedResult}
+        onClose={() => setOpenDrawer(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <ResultModal
+      open={openModal}
+      onClose={() => {
+        setOpenModal(false);
+        setEditResult(null);
+      }}
+      onSubmit={handleSubmitResult}
+      tests={tests}
+      students={students}
+      editData={editResult}
+    />
     </div>
   );
 }
