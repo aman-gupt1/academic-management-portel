@@ -11,3 +11,7 @@ export const logout = async()=>{
 export const profile = async()=>{
    return api.get("users/profile");
 }
+
+export const registerUser= async(userData)=>{
+   return api.post("auth/register",userData)
+}

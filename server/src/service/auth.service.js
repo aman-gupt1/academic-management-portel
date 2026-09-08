@@ -1,4 +1,3 @@
-// import User from '../models/User.js'
 import { registerSchema,loginSchema} from '../validations/auth.validation.js'
 import { hashPassword } from './password.service.js';
 import { generateToken } from '../utils/generateToken.js';

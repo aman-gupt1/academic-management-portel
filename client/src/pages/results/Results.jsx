@@ -55,8 +55,6 @@ const getAllResults = async () => {
   try {
     const response = await resultApi.getResults();
 
-    console.log("this is result respons : ",response.data.data)
-
     setResults(response.data.data);
     
   } catch (error) {

@@ -57,7 +57,7 @@ export default function Teacher() {
   const fetchTeacherStats = async () => {
   try {
     const { data } = await teacherApi.getTeacherStats();
-    console.log("Teacher Stats:", data);
+    
 
     setStats(data.data);
   } catch (error) {
@@ -69,7 +69,7 @@ export default function Teacher() {
   const fetchTeachers = async () => {
   try {
     const { data } = await teacherApi.getTeachers();
-    console.log("Teachers:", data);
+    
     setTeachers(data.data);
   } catch (error) {
     console.log(error);
@@ -129,8 +129,6 @@ const handleUpdate = async () => {
 
     alert("Teacher updated successfully");
   } catch (error) {
-    console.log(error);
-     console.log(error);
   console.log(error.response?.data);
     alert("Failed to update teacher");
   }
@@ -158,7 +156,6 @@ const handleCreateTeacher = async (formData) => {
 
     alert("Teacher created successfully");
   } catch (error) {
-    console.log(error);
     alert(
       error.response?.data?.message ||
       "Failed to create teacher"

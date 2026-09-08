@@ -1,4 +1,4 @@
-import {Users, GraduationCap, School, FileText,Trophy, Activity,} from "lucide-react";
+import {Users, GraduationCap, School, FileText,Trophy, Activity, Plus, User2Icon,} from "lucide-react";
 import { useState, useEffect } from "react";
 
 import PageHeader from "../../components/common/PageHeader";
@@ -8,13 +8,15 @@ import RecentActivities from "../../components/dashboard/RecentActivities";
 import RecentStudents from "../../components/dashboard/RecentStudents";
 import RecentTeachers from "../../components/dashboard/RecentTeachers";
 import { useNavigate } from "react-router-dom";
-
+import UserModal from "../../components/dashboard/UserModel.jsx";
 
 import *  as dashboardApi from '../../api/dashboardApi.js'
+import * as authApi from "../../api/autApi.js";
 
 export default function Dashboard() {
 const [dashboardStats, setDashboardStats] = useState(null);
 const [loading, setLoading] = useState(true);
+const [openUserModal, setOpenUserModal] = useState(false);
 
 const navigate = useNavigate();
 
@@ -26,13 +28,30 @@ const fetchDashboardStats = async () => {
 
     const { data } = await dashboardApi.getDashboardStats();
 
-    console.log(data);
-
     setDashboardStats(data.data); // ya data, response structure par depend karega
   } catch (error) {
     console.log(error);
   } finally {
     setLoading(false);
+  }
+};
+
+const handleRegisterUser = async (
+  userData
+) => {
+  try {
+    await authApi.registerUser(userData);
+
+    setOpenUserModal(false);
+
+    alert("User registered successfully");
+  } catch (error) {
+    console.log(error);
+
+    alert(
+      error?.response?.data?.message ||
+        "Registration failed"
+    );
   }
 };
 
@@ -79,7 +98,16 @@ useEffect(() => {
     <div className="space-y-8">
       
       {/* Header */}
-      <PageHeader title="Dashboard" subtitle="Welcome back! Here's what's happening in your institution today."/>
+      <PageHeader title="Dashboard" subtitle="Welcome back! Here's what's happening in your institution today."
+       action={
+  <button 
+  onClick={() => setOpenUserModal(true)}
+    className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 cursor-pointer">
+       <User2Icon size={18} />
+      Register User
+         </button>
+              }
+      />
       {/* Stats */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((item) => (
@@ -103,6 +131,12 @@ useEffect(() => {
         <RecentStudents />
         <RecentTeachers />
       </div>
+
+      <UserModal
+        open={openUserModal}
+        onClose={() => setOpenUserModal(false)}
+        onSubmit={handleRegisterUser}
+      />
     </div>
   );
 }

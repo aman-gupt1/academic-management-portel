@@ -22,7 +22,6 @@ export default function Login() {
    
     try {
       const {data} = await authApi.login(formData);
-      console.log(data);
 
       // store user info in local storage
       localStorage.setItem("user", JSON.stringify(data.data.user));

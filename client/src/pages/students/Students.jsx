@@ -226,7 +226,6 @@ const fetchClasses = async () => {
 const fetchUsers = async () => {
   try {
     const { data } = await userApi.getStudentUsers();
-    console.log("Users Response:", data);
     setUsers(data.data);
   } catch (error) {
     console.log(error);

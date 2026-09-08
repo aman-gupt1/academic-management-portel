@@ -1,6 +1,3 @@
-import Test from "../models/Test.js";
-import Class from "../models/Class.js";
-import Teacher from "../models/Teacher.js";
 
 class TestService {
 
@@ -147,7 +144,6 @@ return {
   };
     
   }
-
 
   // ================= GET TEST BY ID =================
   async getTestById(testId) {

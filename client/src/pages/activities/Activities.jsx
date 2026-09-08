@@ -1,7 +1,8 @@
 import { useState,useEffect } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import * as activityApi from '../../api/activityApi.js'
-
+import ActivityModal from "../../components/activities/ActivityModal";
+import ActivityDrawer from "../../components/activities/ActivityDrawer";
 import {
   Plus,
   Search,
@@ -26,6 +27,9 @@ export default function Activities() {
 });
 
 const [activities, setActivities] = useState([]);
+const [openModal, setOpenModal] = useState(false);
+const [openDrawer, setOpenDrawer] = useState(false);
+const [selectedActivity, setSelectedActivity] = useState(null);
 
 const getActivityStats = async () => {
   try {
@@ -44,6 +48,46 @@ const getAllActivities = async () => {
       await activityApi.getActivities();
 
     setActivities(response.data.data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm(
+    "Delete this activity?"
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await activityApi.deleteActivity(id);
+
+    getAllActivities();
+    getActivityStats();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const handleSubmit = async (formData) => {
+  try {
+    if (selectedActivity) {
+      await activityApi.updateActivity(
+        selectedActivity._id,
+        formData
+      );
+    } else {
+      await activityApi.createActivity(
+        formData
+      );
+    }
+
+    getAllActivities();
+    getActivityStats();
+
+    setOpenModal(false);
+    setSelectedActivity(null);
   } catch (error) {
     console.log(error);
   }
@@ -100,7 +144,12 @@ useEffect(() => {
         title="Activities Management"
         subtitle="Manage school events, competitions and extracurricular activities."
         action={
-          <button className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+          <button 
+          onClick={() => {
+            setSelectedActivity(null);
+            setOpenModal(true);
+          }}
+          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
             <Plus size={18} />
             Create Activity
           </button>
@@ -132,30 +181,6 @@ useEffect(() => {
           value={stats.participants}
           icon={<Users size={22} />}
         />
-      </div>
-
-      {/* Upcoming Events */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-lg font-semibold text-slate-800">
-          Upcoming Events
-        </h3>
-
-        <div className="space-y-3">
-          <EventItem
-            title="Annual Sports Day"
-            date="20 Sep 2026"
-          />
-
-          <EventItem
-            title="Science Exhibition"
-            date="25 Sep 2026"
-          />
-
-          <EventItem
-            title="Cultural Fest"
-            date="30 Sep 2026"
-          />
-        </div>
       </div>
 
       {/* Filters */}
@@ -239,11 +264,11 @@ useEffect(() => {
             <tbody>
               {activities.map((activity) => (
                 <tr
-                  key={activity.id}
+                  key={activity._id}
                   className="border-t border-slate-100 hover:bg-slate-50"
                 >
                   <td className="px-6 py-4 font-medium">
-                    {activity.name}
+                    {activity.title}
                   </td>
 
                   <td className="px-6 py-4">
@@ -251,7 +276,7 @@ useEffect(() => {
                   </td>
 
                   <td className="px-6 py-4">
-                    {activity.date}
+                    {new Date(activity.date).toLocaleDateString()}
                   </td>
 
                   <td className="px-6 py-4">
@@ -276,15 +301,30 @@ useEffect(() => {
 
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                                          <button
+                        onClick={() => {
+                          setSelectedActivity(activity);
+                          setOpenDrawer(true);
+                        }}
+                        className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                      >
                         <Eye size={18} />
-                      </button>
+                      </button> 
 
-                      <button className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
+                      <button 
+                      onClick={() => {
+                        setSelectedActivity(activity);
+                        setOpenModal(true);
+                      }}
+                      className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
                         <Pencil size={18} />
                       </button>
 
-                      <button className="rounded-lg p-2 text-red-600 hover:bg-red-50">
+                      <button 
+                      onClick={() =>
+                        handleDelete(activity._id)
+                      }
+                      className="rounded-lg p-2 text-red-600 hover:bg-red-50">
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -319,6 +359,29 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      <ActivityModal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+          setSelectedActivity(null);
+        }}
+        editData={selectedActivity}
+        onSubmit={handleSubmit}
+      />
+
+      <ActivityDrawer
+        open={openDrawer}
+        activity={selectedActivity}
+        onClose={() => setOpenDrawer(false)}
+        onEdit={(activity) => {
+        setSelectedActivity(activity);
+        setOpenDrawer(false);
+        setOpenModal(true);
+      }}
+      onDelete={handleDelete}
+      />
+
     </div>
   );
 }

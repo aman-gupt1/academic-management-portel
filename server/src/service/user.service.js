@@ -1,3 +1,5 @@
+import { verifyPassword } from "./password.service.js";
+import { hashPassword } from "./password.service.js";
 class UserService{
 
     constructor(userModel){
@@ -14,6 +16,43 @@ class UserService{
             throw error;
         }
         return user;
+    }
+
+    // Change Password 
+    async changePassword(userId, passwordData){
+
+      const {currentPassword, newPassword}=passwordData;
+
+      if (currentPassword === newPassword) {
+        const error = new Error("New password must be different from current password");
+        error.statusCode = 400;
+        throw error;
+        }
+
+      const user = await this.User.findById(userId);
+
+      if(!user){
+        const error= new Error("User not found");
+        error.statusCode=404;
+        throw error;
+      }
+      const isMatch = await verifyPassword(user.password, currentPassword);
+
+      if (!isMatch) {
+    const error = new Error("Current password is incorrect");
+    error.statusCode = 400;
+    throw error;
+  }
+    //   hashed new password
+    const hashed= await hashPassword(newPassword);
+    user.password=hashed;
+
+    await user.save();
+
+    return{
+        message:"Password Chnaged successfully"
+    }
+
     }
 }
 

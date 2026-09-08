@@ -16,22 +16,17 @@ const [attendanceData, setAttendanceData] = useState({});
 
 // handle load student function
 const handleLoadStudents = async () => {
-  console.log("Class:", selectedClass);
-  console.log("Date:", attendanceDate);
-
+  
   try {
     const response = await studentApi.getStudents({
       classId: selectedClass,
     });
 
-    console.log("FULL RESPONSE:", response);
-    console.log("DATA:", response.data);
-
     setStudents(response.data.data);
 
   } catch (error) {
     console.log("ERROR:", error);
-    console.log(error.response?.data);
+    
   }
 };
 
@@ -92,7 +87,7 @@ const handleSaveAttendance = async () => {
       );
     }
 
-    console.log(attendancePayload);
+    
 
     await attendanceApi.createAttendance(
       attendancePayload

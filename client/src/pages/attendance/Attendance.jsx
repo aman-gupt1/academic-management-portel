@@ -50,8 +50,7 @@ const getAttendanceStats = async () => {
       await attendanceApi.getAttendanceStats();
 
     setStats(response.data.data);
-    console.log ("Attendance Stats: ", response.data.data)
-
+    
   } catch (error) {
     console.log(error);
   }
@@ -66,8 +65,6 @@ const fetchAttendance = async () => {
       await attendanceApi.getAttendance();
 
     setAttendance(response.data.data);
-
-    console.log(response.data.data);
 
   } catch (error) {
     console.log(error);

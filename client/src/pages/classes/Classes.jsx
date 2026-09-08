@@ -49,7 +49,7 @@ export default function Classes() {
     try {
       const response= await classApi.getClassStats()
       setStat(response.data.data)
-      console.log(response.data.data)
+      
     } catch (error) {
       console.log("Stats Error :", error.message)
     }
@@ -60,7 +60,7 @@ export default function Classes() {
   try {
     const response = await classApi.getClasses();
 
-    console.log("Classes:", response.data.data);
+    
 
     setClasses(response.data.data);
   } catch (error) {
@@ -101,7 +101,6 @@ const fetchTeachers = async () => {
 
     setTeachers(data.data);
 
-    console.log("Teachers:", data.data);
   } catch (error) {
     console.log(error);
   }

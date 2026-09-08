@@ -1,148 +1,108 @@
-
 class ActivityService {
-
-
-  constructor(activityModel, studentModel){
-    this.Activity=activityModel,
-    this.Student=studentModel
+  constructor(activityModel) {
+    this.Activity = activityModel;
   }
+
   // ================= CREATE ACTIVITY =================
   async createActivity(activityData) {
-
-    const {
-      studentId,
-      title,
-      category,
-      description,
-      date,
-      achievement,
-      certification,
-    } = activityData;
-
-    // Check student exists
-    const student = await this.Student.findById(studentId);
-
-    if (!student) {
-      const error = new Error("Student not found");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Create activity
     const activity = await this.Activity.create({
-      studentId,
-      title,
-      category,
-      description,
-      date,
-      achievement,
-      certification,
+      title: activityData.title,
+      type: activityData.type,
+      date: activityData.date,
+      venue: activityData.venue,
+      participants: activityData.participants || 0,
+      description: activityData.description || "",
+      status: activityData.status || "Upcoming",
     });
 
     return activity;
   }
-
 
   // ================= GET ALL ACTIVITIES =================
   async getAllActivities(queryParams) {
-      const filter = {};
+    const filter = {};
 
-      // Search
-  if (queryParams.search) {
-    filter.$or = [
-      {
-        title: {
-          $regex: queryParams.search,
-          $options: "i",
+    // Search
+    if (queryParams.search) {
+      filter.$or = [
+        {
+          title: {
+            $regex: queryParams.search,
+            $options: "i",
+          },
         },
-      },
-      {
-        achievement: {
-          $regex: queryParams.search,
-          $options: "i",
+        {
+          venue: {
+            $regex: queryParams.search,
+            $options: "i",
+          },
         },
-      },
-      {
-        certification: {
-          $regex: queryParams.search,
-          $options: "i",
+        {
+          description: {
+            $regex: queryParams.search,
+            $options: "i",
+          },
         },
-      },
-    ];
-  }
+      ];
+    }
 
-  // Category Filter
-  if (queryParams.category) {
-    filter.category = queryParams.category;
-  }
+    // Type Filter
+    if (queryParams.type) {
+      filter.type = queryParams.type;
+    }
 
-  // Student Filter
-  if (queryParams.studentId) {
-    filter.studentId = queryParams.studentId;
-  }
+    // Status Filter
+    if (queryParams.status) {
+      filter.status = queryParams.status;
+    }
 
-  let query = this.Activity.find(filter)
-    .populate({
-      path: "studentId",
-      populate: {
-        path: "userId",
-        select: "name email",
-      },
-    });
+    let query = this.Activity.find(filter);
 
     // Pagination
-  let page = 1;
-  let limit = 10;
-
+    let page = 1;
+    let limit = 10;
 
     if (queryParams.all !== "true") {
-    page = Number(queryParams.page) || 1;
-    limit = Number(queryParams.limit) || 10;
+      page = Number(queryParams.page) || 1;
+      limit = Number(queryParams.limit) || 10;
 
-    const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
-    query = query.skip(skip).limit(limit);
-  }
+      query = query.skip(skip).limit(limit);
+    }
 
-  // Sorting
-  if (queryParams.sort) {
-    query = query.sort(queryParams.sort);
-  } else {
-    query = query.sort("-date");
-  }
+    // Sorting
+    if (queryParams.sort) {
+      query = query.sort(queryParams.sort);
+    } else {
+      query = query.sort("-date");
+    }
 
-  const activities = await query;
+    const activities = await query;
 
-  const total = await this.Activity.countDocuments(filter);
-
+    const total =
+      await this.Activity.countDocuments(filter);
 
     return {
-    activities,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-
+      activities,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
-
 
   // ================= GET ACTIVITY BY ID =================
   async getActivityById(activityId) {
-
-    const activity = await this.Activity.findById(activityId)
-      .populate({
-        path: "studentId",
-        populate: {
-          path: "userId",
-          select: "name email profileImg",
-        },
-      });
+    const activity =
+      await this.Activity.findById(activityId);
 
     if (!activity) {
-      const error = new Error("Activity not found");
+      const error = new Error(
+        "Activity not found"
+      );
       error.statusCode = 404;
       throw error;
     }
@@ -150,103 +110,52 @@ class ActivityService {
     return activity;
   }
 
-
   // ================= UPDATE ACTIVITY =================
- async updateActivity(activityId, activityData) {
+  async updateActivity(activityId, activityData) {
+    const activity =
+      await this.Activity.findById(activityId);
 
-  // Check activity exists
-  const activity = await this.Activity.findById(activityId);
-
-  if (!activity) {
-    const error = new Error("Activity not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const {
-    studentId,
-    title,
-    category,
-    description,
-    date,
-    achievement,
-    certification,
-  } = activityData;
-
-  // Check student if provided
-  if (studentId !== undefined) {
-
-    const student = await this.Student.findById(studentId);
-
-    if (!student) {
-      const error = new Error("Student not found");
+    if (!activity) {
+      const error = new Error(
+        "Activity not found"
+      );
       error.statusCode = 404;
       throw error;
     }
+
+    const updatedActivity =
+      await this.Activity.findByIdAndUpdate(
+        activityId,
+        activityData,
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    return updatedActivity;
   }
-
-  // Create update object
-  const updateData = {};
-
-  if (studentId !== undefined) {
-    updateData.studentId = studentId;
-  }
-
-  if (title !== undefined) {
-    updateData.title = title;
-  }
-
-  if (category !== undefined) {
-    updateData.category = category;
-  }
-
-  if (description !== undefined) {
-    updateData.description = description;
-  }
-
-  if (date !== undefined) {
-    updateData.date = date;
-  }
-
-  if (achievement !== undefined) {
-    updateData.achievement = achievement;
-  }
-
-  if (certification !== undefined) {
-    updateData.certification = certification;
-  }
-
-  const updatedActivity = await this.Activity.findByIdAndUpdate(
-    activityId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-
-  return updatedActivity;
-}
 
   // ================= DELETE ACTIVITY =================
   async deleteActivity(activityId) {
-
-    const activity = await this.Activity.findByIdAndDelete(activityId);
+    const activity =
+      await this.Activity.findByIdAndDelete(
+        activityId
+      );
 
     if (!activity) {
-      const error = new Error("Activity not found");
+      const error = new Error(
+        "Activity not found"
+      );
       error.statusCode = 404;
       throw error;
     }
 
     return activity;
   }
-  
-  
 
   // ================= GET ACTIVITY STATS =================
   async getActivityStats() {
-
     const totalActivities =
       await this.Activity.countDocuments();
 
@@ -271,7 +180,8 @@ class ActivityService {
           },
         },
       ]);
- return {
+
+    return {
       totalActivities,
       upcomingEvents,
       completedEvents,
@@ -280,7 +190,6 @@ class ActivityService {
           ?.totalParticipants || 0,
     };
   }
-
 }
 
 export default ActivityService;

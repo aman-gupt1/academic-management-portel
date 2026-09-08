@@ -82,8 +82,6 @@ const fetchTests = async () => {
 const fetchTeachers = async () => {
   try {
     const response = await teacherApi.getTeachers();
-    console.log("GET ALL TEACHER FOR  TEST : " 
-      ,response.data.data)
     setTeachers(response.data.data);
   } catch (error) {
     console.log(error);
