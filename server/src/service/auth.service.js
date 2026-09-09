@@ -2,6 +2,8 @@ import { registerSchema,loginSchema} from '../validations/auth.validation.js'
 import { hashPassword } from './password.service.js';
 import { generateToken } from '../utils/generateToken.js';
 import { verifyPassword } from './password.service.js';
+import crypto from "crypto";
+import { hashResetToken } from '../utils/resetToken.js';
 
 
 class AuthService{
@@ -126,6 +128,65 @@ constructor(userModel) {
   };
 }
 
+
+// reset password
+async forgotPassword(email){
+  const user= await this.User.findOne({email: email})
+  
+  if(!user){
+    throw new Error("User not found")
+  }
+
+  // / generate reset token
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = await hashResetToken(resetToken);
+  
+  user.resetPasswordToken = hashedToken;
+  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  await user.save();
+
+  // create reset link 
+  const resetUrl =`http://localhost:5173/reset-password/${resetToken}`;
+ return {
+  user,
+resetToken,
+resetUrl
+  }
+}
+
+// resetpassword
+async resetPassword(token, newPassword) {
+  
+  // hashed token
+const hashedToken =await hashResetToken(token);
+
+  const user = await this.User.findOne({
+      resetPasswordToken:
+        hashedToken,
+      resetPasswordExpire: {
+        $gt: Date.now(),
+      },
+    });
+
+  if (!user) {
+    throw new Error(
+      "Invalid or expired token"
+    );
+  }
+
+  user.password =
+    await hashPassword(newPassword);
+
+  user.resetPasswordToken =
+    undefined;
+
+  user.resetPasswordExpire =
+    undefined;
+
+  await user.save();
+
+  return user;
+}
 }
 
 export default AuthService;

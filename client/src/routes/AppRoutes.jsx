@@ -11,6 +11,7 @@ import Attendance from "../pages/attendance/Attendance";
 import Tests from "../pages/tests/Tests";
 import Results from "../pages/results/Results";
 import Activities from "../pages/activities/Activities";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 
 import DashboardLayout from "../components/layout/DashboardLayout";
@@ -21,10 +22,10 @@ export default function AppRoutes() {
 
         {/* login page route */}
       <Route path="/login" element={<Login />}/>
-      
+      <Route path="/reset-password/:token" element={<ResetPassword/>}/>
         {/* dashboard route */}
-      <Route element={<DashboardLayout />}>
 
+      <Route element={<DashboardLayout />}>
         <Route path="/dashboard" element={<Dashboard />}/>
         <Route path="/students" element={<Students />}/>
         <Route path="/teachers" element={<Teacher />}/>
@@ -33,9 +34,6 @@ export default function AppRoutes() {
         <Route path="/tests" element={<Tests />}/>
         <Route path="/results" element={<Results/>}/>
         <Route path="/activities" element={<Activities/>}/>
-        
-
-
       </Route>
 
         {/* wildcare route if no one is match , it  catches */}

@@ -7,3 +7,4 @@ export const hashPassword = async (password) => {
 export const verifyPassword = async (hash, password) => {
   return await argon2.verify(hash, password);
 };
+
