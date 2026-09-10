@@ -6,6 +6,30 @@ The Academic Management Portal is designed to streamline and digitize academic i
 
 ---
 
+## 📸 Screenshots
+
+### Login Page
+
+![Login](./screenshots/login.png)
+
+### Dashboard
+
+![Dashboard](./screenshots/dashboard.png)
+
+### Students Management
+
+![Students](./screenshots/students.png)
+
+### Users Management
+
+![Students](./screenshots/users.png)
+
+### Profile Page
+
+![Profile](./screenshots/profile.png)
+
+---
+
 ## 🚀 Tech Stack
 
 ### Frontend
@@ -40,6 +64,15 @@ The Academic Management Portal is designed to streamline and digitize academic i
 * Change Password
 * JWT Cookie Authentication
 * Role-Based Access Control (Admin, Teacher, Student)
+
+### User Management
+
+* View All Users
+* Search Users
+* Update User Role
+* Toggle User Status (Active / Blocked)
+* Delete User
+* User Distribution Analytics
 
 ### Student Management
 
@@ -208,6 +241,10 @@ http://localhost:5173
 
 * Get Profile
 * Change Password
+* Get All Users
+* Update User Role
+* Update User Status
+* Delete User
 * Get User Distribution
 
 ### Students
@@ -262,6 +299,17 @@ http://localhost:5173
 * Update Activity
 * Delete Activity
 
+
+### Security Features
+
+* JWT Authentication
+* HTTP Only Cookies
+* Password Hashing using Argon2
+* Protected Routes
+* Role-Based Authorization
+* Input Validation with Joi
+* Environment Variable Protection
+
 ---
 
 ## 🎯 Current Status
@@ -290,28 +338,6 @@ http://localhost:5173
 * Notifications
 * Reports & Export Features
 * Performance Optimizations
-
-## 📸 Screenshots
-
-### Login Page
-
-![Login](./screenshots/login.png)
-
-### Dashboard
-
-![Dashboard](./screenshots/dashboard.png)
-
-### Students Management
-
-![Students](./screenshots/students.png)
-
-### Users Management
-
-![Students](./screenshots/users.png)
-
-### Profile Page
-
-![Profile](./screenshots/profile.png)
 
 ---
 
