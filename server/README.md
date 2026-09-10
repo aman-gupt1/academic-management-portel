@@ -11,6 +11,8 @@ Backend REST API for managing academic institutions, including students, teacher
 * JWT Authentication
 * Secure Password Hashing with Argon2
 * Login & Logout Functionality
+* Forgot Password
+* Reset Password via Email
 * Protected Routes
 * Role-Based Access Control (Admin, Teacher, Student)
 
@@ -18,6 +20,8 @@ Backend REST API for managing academic institutions, including students, teacher
 
 * User Registration
 * User Profile Management
+* Change Password
+* User Distribution Analytics
 * Active/Inactive User Status
 * Role Management
 
@@ -148,6 +152,17 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 
 NODE_ENV=development
+
+FRONTEND_URL=http://localhost:5173
+
+EMAIL_HOST=
+
+EMAIL_PORT=
+
+EMAIL_USER=your_email@gmail.com
+
+EMAIL_PASS=your_gmail_app_password
+
 ```
 
 ---
@@ -168,19 +183,23 @@ http://localhost:5000
 
 ## 🔐 Authentication APIs
 
-| Method | Endpoint             | Description   |
-| ------ | -------------------- | ------------- |
-| POST   | `/api/auth/register` | Register User |
-| POST   | `/api/auth/login`    | Login User    |
-| POST   | `/api/auth/logout`   | Logout User   |
+| Method | Endpoint                           | Description             |
+| -------- | ---------------------------------- | ----------------------- |
+| POST | `/api/auth/register` | Register User |
+| POST | `/api/auth/login` | Login User |
+| POST | `/api/auth/logout` | Logout User |
+| POST | `/api/auth/forgot-password` | Send Reset Password Link |
+| PUT | `/api/auth/reset-password/:token` | Reset Password |
 
 ---
 
 ## 👤 User APIs
 
-| Method | Endpoint             | Description                |
-| ------ | -------------------- | -------------------------- |
-| GET    | `/api/users/profile` | Get Logged In User Profile |
+| Method | Endpoint | Description |
+| -------- | -------- | -------- |
+| GET | `/api/users/profile` | Get Logged In User Profile |
+| PUT | `/api/users/change-password` | Change Current Password |
+| GET | `/api/users/distribution` | Get User Distribution Statistics |
 
 ---
 
@@ -281,6 +300,19 @@ http://localhost:5000
 | ------ | ---------------------- | -------------------- |
 | GET    | `/api/dashboard/stats` | Dashboard Statistics |
 
+
+## 🔑 Forgot Password Flow
+
+1. User clicks "Forgot Password".
+2. User enters registered email.
+3. System generates a secure reset token.
+4. Reset link is sent via email.
+5. User opens the reset link.
+6. User enters a new password.
+7. Password gets updated securely.
+8. User can login again using the new password.
+
+
 ### Dashboard Statistics Includes
 
 * Total Students
@@ -289,6 +321,7 @@ http://localhost:5000
 * Total Tests
 * Total Results
 * Total Activities
+* User Distribution
 
 ---
 
@@ -298,12 +331,21 @@ The system provides dedicated statistics APIs for dashboard cards and analytics.
 
 ```text
 /api/dashboard/stats
+
+/api/users/distribution
+
 /api/students/stats
+
 /api/teachers/stats
+
 /api/classes/stats
+
 /api/attendance/stats
+
 /api/tests/stats
+
 /api/results/stats
+
 /api/activities/stats
 ```
 
@@ -344,6 +386,8 @@ roleMiddleware("admin");
 
 * JWT Authentication
 * Argon2 Password Hashing
+* Forgot Password Flow
+* Reset Password via Secure Email Link
 * Protected Routes
 * Role-Based Authorization
 * Joi Request Validation

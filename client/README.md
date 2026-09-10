@@ -103,29 +103,6 @@ npm run build
 npm run preview
 ```
 
-## Project Structure
-
-```text
-src/
-├── api/
-├── assets/
-├── components/
-│   ├── common/
-│   ├── dashboard/
-│   ├── students/
-│   ├── teachers/
-│   ├── classes/
-│   ├── attendance/
-│   ├── tests/
-│   ├── results/
-│   └── activities/
-├── pages/
-├── routes/
-├── utils/
-├── App.jsx
-└── main.jsx
-```
-
 ## Backend API
 
 The frontend communicates with the Academic Management Portal backend through REST APIs.

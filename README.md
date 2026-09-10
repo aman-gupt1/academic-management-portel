@@ -35,6 +35,10 @@ The Academic Management Portal is designed to streamline and digitize academic i
 * User Registration
 * User Login & Logout
 * JWT-Based Authentication
+* Forgot Password
+* Reset Password via Email
+* Change Password
+* JWT Cookie Authentication
 * Role-Based Access Control (Admin, Teacher, Student)
 
 ### Student Management
@@ -90,6 +94,7 @@ The Academic Management Portal is designed to streamline and digitize academic i
 ### Dashboard
 
 * Institution Statistics
+* User Distribution Analytics
 * Recent Activities
 * Quick Actions
 * Student Overview
@@ -136,6 +141,15 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRE=7d
 
 NODE_ENV=development
+
+EMAIL_USER=your_email@gmail.com
+
+EMAIL_PASS=your_gmail_app_password
+
+CLIENT_URL=http://localhost:5173
+
+NODE_ENV=development
+
 ```
 
 Run backend server:
@@ -187,6 +201,14 @@ http://localhost:5173
 * Register User
 * Login User
 * Logout User
+* Forgot Password
+* Reset Password
+
+### Users
+
+* Get Profile
+* Change Password
+* Get User Distribution
 
 ### Students
 
@@ -247,6 +269,9 @@ http://localhost:5173
 ### Completed Modules
 
 * Authentication APIs
+* Forgot Password Flow
+* Reset Password Flow
+* Change Password
 * User Management
 * Student Management
 * Teacher Management
@@ -256,6 +281,7 @@ http://localhost:5173
 * Result Management
 * Activity Management
 * Dashboard Statistics
+* User Distribution Analytics
 * Frontend CRUD Operations
 
 ### In Progress
@@ -264,6 +290,64 @@ http://localhost:5173
 * Notifications
 * Reports & Export Features
 * Performance Optimizations
+
+## 📸 Screenshots
+
+### Login Page
+
+![Login](./screenshots/login.png)
+
+### Dashboard
+
+![Dashboard](./screenshots/dashboard.png)
+
+### Students Management
+
+![Students](./screenshots/students.png)
+
+### Profile Page
+
+![Profile](./screenshots/profile.png)
+
+---
+
+## 📂 Project Structure
+
+academic-management-portal/
+
+├── client/
+
+│ ├── src/
+
+│ ├── components/
+
+│ ├── pages/
+
+│ └── api/
+
+│
+
+├── server/
+
+│ ├── src/
+
+│ │ ├── controllers/
+
+│ │ ├── services/
+
+│ │ ├── models/
+
+│ │ ├── routes/
+
+│ │ ├── middleware/
+
+│ │ ├── validations/
+
+│ │ └── utils/
+
+│
+
+└── README.md
 
 ---
 
