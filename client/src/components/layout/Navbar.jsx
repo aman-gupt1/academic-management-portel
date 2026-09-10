@@ -66,20 +66,7 @@ const handleLogout = async () => {
         </button>
       </div>
 
-      <div className="hidden w-full max-w-md lg:block">
-        <div className="relative">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 outline-none focus:border-indigo-500"
-          />
-        </div>
-      </div>
+      
 
       <div className="flex items-center gap-2 sm:gap-4">
         <button className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden">
