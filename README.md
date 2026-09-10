@@ -305,6 +305,10 @@ http://localhost:5173
 
 ![Students](./screenshots/students.png)
 
+### Users Management
+
+![Students](./screenshots/users.png)
+
 ### Profile Page
 
 ![Profile](./screenshots/profile.png)
