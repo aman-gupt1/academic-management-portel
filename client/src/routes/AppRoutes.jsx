@@ -13,7 +13,7 @@ import Results from "../pages/results/Results";
 import Activities from "../pages/activities/Activities";
 import ResetPassword from "../pages/auth/ResetPassword";
 import Profile from "../pages/profile/Profile";
-
+import Users from "../pages/users/Users";
 
 import DashboardLayout from "../components/layout/DashboardLayout";
 
@@ -36,6 +36,7 @@ export default function AppRoutes() {
         <Route path="/results" element={<Results/>}/>
         <Route path="/activities" element={<Activities/>}/>
         <Route path="/profile" element={<Profile/>}/>
+        <Route path="/users" element={<Users/>}/>
       </Route>
 
         {/* wildcare route if no one is match , it  catches */}

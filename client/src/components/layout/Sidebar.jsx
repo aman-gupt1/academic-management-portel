@@ -13,6 +13,7 @@ import {
   Activity,
   LogOut,
   X,
+  User
 } from "lucide-react";
 
 const menuItems = [
@@ -30,6 +31,11 @@ const menuItems = [
     name: "Teachers",
     path: "/teachers",
     icon: GraduationCap,
+  },
+  {
+    name: "Users",
+    path: "/users",
+    icon: User,
   },
   {
     name: "Classes",

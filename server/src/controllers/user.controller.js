@@ -19,26 +19,25 @@ export const getProfile = async (req, res, next) => {
   }
 };
 
-
-export const getUsers = async (req, res,next) => {
+// get users
+export const getUsers = async (
+  req,
+  res,
+  next
+) => {
   try {
+
     const { role } = req.query;
 
-    const filter = {};
-
-    if (role) {
-      filter.role = role;
-    }
-
-    const users = await User.find(filter)
-      .select("name email phone role");
+    const users = await userService.getUsers(role);
 
     res.status(200).json({
       success: true,
       data: users,
     });
+
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
@@ -82,3 +81,69 @@ export const getUserDistribution = async (req, res, next) => {
       next(error);
     }
   };
+
+  // delete users 
+  export const deleteUser= async(req,res,next)=>{
+     try {
+
+    const  id  = req.params.id;
+
+    await userService.deleteUser(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+
+  } catch (error) {
+    next(error)
+  }
+  }
+
+  // update user role 
+ export const updateUserRole= async(req, res, next) =>{
+  try {
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const user =
+      await userService.updateUserRole(
+        id,
+        role
+      );
+
+    res.status(200).json({
+      success: true,
+      message: "User role updated successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+// update user status
+
+export const updateUserStatus=async(req, res, next) =>{
+  try {
+
+    const { id } = req.params;
+
+    const user =
+      await userService.updateUserStatus(
+        id
+      );
+
+    res.status(200).json({
+      success: true,
+      message: "User status updated successfully",
+      data: user,
+    });
+
+  } catch (error) {
+    next(error)
+
+  }
+}

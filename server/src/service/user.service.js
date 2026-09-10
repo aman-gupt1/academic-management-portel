@@ -74,13 +74,93 @@ class UserService{
         role: "admin",
       });
 
+      const totalUsers =
+    await this.User.countDocuments();
+
+      const activeUsers =
+    await this.User.countDocuments({
+      isActive: true,
+    });
+
+  const blockedUsers =
+    await this.User.countDocuments({
+      isActive: false,
+    });
+
     return {
+      totalUsers,
       totalStudents,
       totalTeachers,
       totalAdmins,
+      activeUsers,
+      blockedUsers,
     };
   }
   
+
+  // delete user
+  async deleteUser(userId) {
+
+  const user = await this.User.findById(userId);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  await this.User.findByIdAndDelete(userId);
+
+  return true;
+}
+
+
+// update user role
+async updateUserRole(userId, role) {
+
+  const user = await this.User.findById(userId);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.role = role;
+
+  await user.save();
+
+  return user;
+}
+
+// update user status
+async updateUserStatus(userId) {
+
+  const user = await this.User.findById(userId);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.isActive = !user.isActive;
+
+  await user.save();
+
+  return user;
+}
+
+async getUsers(role) {
+
+    const filter = {};
+
+    if (role) {
+      filter.role = role;
+    }
+
+    const users = await this.User.find(filter)
+      .select(
+        "name email role phone isActive lastLogin createdAt"
+      );
+
+    return users;
+  }
+
 }
 
 export default UserService;
