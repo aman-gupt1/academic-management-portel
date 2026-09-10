@@ -299,29 +299,35 @@ const {
                     </div>
                   </td>
 
+      
+                    {/* role dropdown + role */}
                   <td className="px-6 py-4">
-                    <select
-                      value={user.role}
-                      onChange={(e) =>
-                        handleRoleChange(
-                          user._id,
-                          e.target.value
-                        )
-                      }
-                      className="rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500"
-                    >
-                      <option value="admin">
-                        Admin
-                      </option>
+                    {user.role === "student" ? (
 
-                      <option value="teacher">
-                        Teacher
-                      </option>
+                      <span className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-700 capitalize">
+                        {user.role}
+                      </span>
 
-                      <option value="student">
-                        Student
-                      </option>
-                    </select>
+                    ) : (
+                      <select
+                        value={user.role}
+                        onChange={(e) =>
+                          handleRoleChange(
+                            user._id,
+                            e.target.value
+                          )
+                        }
+                        className="rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500"
+                      >
+                        <option value="admin">
+                          Admin
+                        </option>
+
+                        <option value="teacher">
+                          Teacher
+                        </option>
+                      </select>
+                    )}
                   </td>
 
                   <td className="px-6 py-4">
