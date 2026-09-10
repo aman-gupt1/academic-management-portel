@@ -25,7 +25,6 @@ export default function Login() {
    
     try {
       const {data} = await authApi.login(formData);
-
       // store user info in local storage
       localStorage.setItem("user", JSON.stringify(data.data.user));
       navigate("/dashboard");

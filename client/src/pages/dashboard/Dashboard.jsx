@@ -4,22 +4,37 @@ import { useState, useEffect } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import QuickActions from "../../components/dashboard/QuickActions";
-import RecentActivities from "../../components/dashboard/RecentActivities";
-import RecentStudents from "../../components/dashboard/RecentStudents";
-import RecentTeachers from "../../components/dashboard/RecentTeachers";
+import UserDistribution from "../../components/dashboard/UserDistribution.jsx";
 import { useNavigate } from "react-router-dom";
 import UserModal from "../../components/dashboard/UserModel.jsx";
 
 import *  as dashboardApi from '../../api/dashboardApi.js'
 import * as authApi from "../../api/autApi.js";
+import * as userApi from '../../api/userApi.js'
 
 export default function Dashboard() {
 const [dashboardStats, setDashboardStats] = useState(null);
 const [loading, setLoading] = useState(true);
 const [openUserModal, setOpenUserModal] = useState(false);
+const [userDistribution, setUserDistribution] =
+  useState({
+    totalStudents: 0,
+    totalTeachers: 0,
+    totalAdmins: 0,
+  });
 
 const navigate = useNavigate();
 
+// get user distibution
+const fetchUserDistribution= async()=>{
+ try {
+  const { data } = await userApi.getUserDistribution();
+  console.log("User Distribution Data: ",data.data);
+   setUserDistribution(data.data);
+ } catch (error) {
+  console.log("USER DISTRIBUTION ERROR: ", error.message)
+ }
+}
 
 // fetch dashboard stats from backend
 const fetchDashboardStats = async () => {
@@ -57,6 +72,7 @@ const handleRegisterUser = async (
 
 useEffect(() => {
   fetchDashboardStats();
+  fetchUserDistribution();
 }, []);
 
 
@@ -120,17 +136,22 @@ useEffect(() => {
         ))}
       </div>
 
-      {/* Activities + Actions */}
+      {/* UserDistribution + Actions */}
       <div className="grid gap-6 xl:grid-cols-2">
-        <RecentActivities />
+        <UserDistribution
+  totalStudents={
+    userDistribution.totalStudents
+  }
+  totalTeachers={
+    userDistribution.totalTeachers
+  }
+  totalAdmins={
+    userDistribution.totalAdmins
+  }
+/>
         <QuickActions />
       </div>
 
-      {/* Students + Teachers */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <RecentStudents />
-        <RecentTeachers />
-      </div>
 
       <UserModal
         open={openUserModal}

@@ -44,6 +44,7 @@ export const getUsers = async (req, res,next) => {
 
 // chnage password
 export const changePassword= async (req,res,next)=>{
+  
   try {
    const result =  await userService.changePassword(req.user._id,req.body);
 
@@ -57,6 +58,27 @@ export const changePassword= async (req,res,next)=>{
       message:"Password Update Successfuly"
     })
   } catch (error) {
+    
     next(error)
   }
 }
+
+
+// get user distribution
+export const getUserDistribution = async (req, res, next) => {
+    try {
+
+      const data =
+        await userService.getUserDistribution();
+
+      res.status(200).json({
+        success: true,
+        message:
+          "User distribution fetched successfully",
+        data,
+      });
+
+    } catch (error) {
+      next(error);
+    }
+  };

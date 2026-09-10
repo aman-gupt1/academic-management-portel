@@ -20,6 +20,7 @@ class UserService{
 
     // Change Password 
     async changePassword(userId, passwordData){
+      console.log("THis data send by password", passwordData)
 
       const {currentPassword, newPassword}=passwordData;
 
@@ -54,6 +55,32 @@ class UserService{
     }
 
     }
+
+    // get user distribution
+    async getUserDistribution() {
+
+    const totalStudents =
+      await this.User.countDocuments({
+        role: "student",
+      });
+
+    const totalTeachers =
+      await this.User.countDocuments({
+        role: "teacher",
+      });
+
+    const totalAdmins =
+      await this.User.countDocuments({
+        role: "admin",
+      });
+
+    return {
+      totalStudents,
+      totalTeachers,
+      totalAdmins,
+    };
+  }
+  
 }
 
 export default UserService;

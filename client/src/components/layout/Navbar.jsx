@@ -64,16 +64,6 @@ const handleLogout = async () => {
         >
           <Menu size={22} />
         </button>
-
-        {/* <div>
-          <h1 className="text-lg font-semibold text-slate-800">
-            Dashboard
-          </h1>
-
-          <p className="hidden text-sm text-slate-500 sm:block">
-            Welcome back to Academexa
-          </p>
-        </div> */}
       </div>
 
       <div className="hidden w-full max-w-md lg:block">
@@ -104,24 +94,7 @@ const handleLogout = async () => {
           <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
         </button>
 
-        {/* <button className="flex items-center gap-3 rounded-xl border border-slate-200 px-2 py-1.5 hover:bg-slate-50 cursor-pointer">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-100">
-            <User
-              size={18}
-              className="text-indigo-600"
-            />
-          </div>
-
-          <div className="hidden text-left md:block">
-            <p className="text-sm font-medium text-slate-800">
-              {user.name}
-            </p>
-
-            <p className="text-xs text-slate-500">
-              {user.role}
-            </p>
-          </div>
-        </button> */}
+      
 
       <div className="relative" ref={dropdownRef}>
       <button onClick={() => setOpen(!open)}
