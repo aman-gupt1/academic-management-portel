@@ -217,10 +217,6 @@ useEffect(() => {
               <option>Completed</option>
             </select>
 
-            <button className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50">
-              <Download size={18} />
-              Export
-            </button>
           </div>
         </div>
       </div>
